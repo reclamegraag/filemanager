@@ -33,6 +33,7 @@
   let batchRenameOpen = $state(false);
   let showHidden = $state(false);
   let filterMode = $state(false);
+  let editingPath = $state<'left' | 'right' | null>(null);
   let batchRenameFiles = $state<{ path: string; name: string }[]>([]);
 
   const commands = [
@@ -213,6 +214,10 @@
 
       case 'help':
         helpOpen = !helpOpen;
+        break;
+
+      case 'edit_path':
+        editingPath = $activePane;
         break;
     }
   }
@@ -420,12 +425,14 @@
         focusedIndex={$leftSelection.focusedIndex}
         active={$activePane === 'left'}
         {showHidden}
+        editingPath={editingPath === 'left'}
         onPathChange={(path) => leftPane.setPath(path)}
         onEntriesLoaded={(entries) => leftPane.setEntries(entries)}
         onSelect={(entry, event) => handleSelect('left', entry, event)}
         onFocus={() => activePane.set('left')}
         onSort={(column) => leftPane.setSort(column)}
         onError={(error) => leftPane.setError(error)}
+        onEditPathEnd={() => editingPath = null}
       />
 
       <Pane
@@ -434,12 +441,14 @@
         focusedIndex={$rightSelection.focusedIndex}
         active={$activePane === 'right'}
         {showHidden}
+        editingPath={editingPath === 'right'}
         onPathChange={(path) => rightPane.setPath(path)}
         onEntriesLoaded={(entries) => rightPane.setEntries(entries)}
         onSelect={(entry, event) => handleSelect('right', entry, event)}
         onFocus={() => activePane.set('right')}
         onSort={(column) => rightPane.setSort(column)}
         onError={(error) => rightPane.setError(error)}
+        onEditPathEnd={() => editingPath = null}
       />
     </div>
 

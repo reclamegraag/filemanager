@@ -21,6 +21,7 @@ export type KeyAction =
   | 'command_palette'
   | 'start_filter'
   | 'clear_filter'
+  | 'edit_path'
   | 'bookmark_1'
   | 'bookmark_2'
   | 'bookmark_3'
@@ -69,6 +70,7 @@ export const defaultKeyBindings: KeyBinding[] = [
 
   // UI
   { key: 'p', ctrl: true, action: 'command_palette' },
+  { key: 'l', ctrl: true, action: 'edit_path' },
   { key: '/', action: 'start_filter' },
   { key: 'Escape', action: 'clear_filter' },
   { key: 'F1', action: 'help' },

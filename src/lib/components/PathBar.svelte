@@ -1,10 +1,15 @@
 <script lang="ts">
   interface Props {
     path: string;
+    editing?: boolean;
     onNavigate: (path: string) => void;
+    onEditEnd?: () => void;
   }
 
-  let { path, onNavigate }: Props = $props();
+  let { path, editing = false, onNavigate, onEditEnd }: Props = $props();
+
+  let inputValue = $state(path);
+  let inputRef: HTMLInputElement;
 
   interface PathSegment {
     name: string;
@@ -40,24 +45,62 @@
     return result;
   });
 
+  $effect(() => {
+    if (editing && inputRef) {
+      inputValue = path;
+      inputRef.focus();
+      inputRef.select();
+    }
+  });
+
   function handleClick(segment: PathSegment) {
     onNavigate(segment.path);
+  }
+
+  function handleInputKeyDown(event: KeyboardEvent) {
+    if (event.key === 'Enter') {
+      event.preventDefault();
+      if (inputValue.trim()) {
+        onNavigate(inputValue.trim());
+      }
+      onEditEnd?.();
+    } else if (event.key === 'Escape') {
+      event.preventDefault();
+      inputValue = path;
+      onEditEnd?.();
+    }
+  }
+
+  function handleInputBlur() {
+    onEditEnd?.();
   }
 </script>
 
 <nav class="path-bar">
-  {#each segments() as segment, i}
-    {#if i > 0}
-      <span class="separator">/</span>
-    {/if}
-    <button
-      class="segment"
-      class:current={i === segments().length - 1}
-      onclick={() => handleClick(segment)}
-    >
-      {segment.name}
-    </button>
-  {/each}
+  {#if editing}
+    <input
+      bind:this={inputRef}
+      bind:value={inputValue}
+      class="path-input"
+      type="text"
+      onkeydown={handleInputKeyDown}
+      onblur={handleInputBlur}
+      spellcheck="false"
+    />
+  {:else}
+    {#each segments() as segment, i}
+      {#if i > 0}
+        <span class="separator">/</span>
+      {/if}
+      <button
+        class="segment"
+        class:current={i === segments().length - 1}
+        onclick={() => handleClick(segment)}
+      >
+        {segment.name}
+      </button>
+    {/each}
+  {/if}
 </nav>
 
 <style>
@@ -71,6 +114,17 @@
     font-size: 13px;
     overflow-x: auto;
     white-space: nowrap;
+  }
+
+  .path-input {
+    flex: 1;
+    background: var(--input-bg);
+    border: 1px solid var(--focus-border);
+    border-radius: 4px;
+    padding: 4px 8px;
+    font: inherit;
+    color: var(--fg);
+    outline: none;
   }
 
   .separator {

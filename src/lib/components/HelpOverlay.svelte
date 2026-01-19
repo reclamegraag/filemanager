@@ -29,6 +29,7 @@
     ]},
     { category: 'UI', items: [
       { key: 'Ctrl+P', action: 'Command palette' },
+      { key: 'Ctrl+L', action: 'Edit path' },
       { key: '/', action: 'Start filter' },
       { key: 'Escape', action: 'Clear filter' },
       { key: 'Ctrl+1-9', action: 'Jump to bookmark' },

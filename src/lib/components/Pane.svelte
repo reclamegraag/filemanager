@@ -12,12 +12,14 @@
     focusedIndex: number;
     active: boolean;
     showHidden: boolean;
+    editingPath?: boolean;
     onPathChange: (path: string) => void;
     onEntriesLoaded: (entries: FileEntry[]) => void;
     onSelect: (entry: FileEntry, event: MouseEvent) => void;
     onFocus: () => void;
     onSort: (column: SortColumn) => void;
     onError: (error: string) => void;
+    onEditPathEnd?: () => void;
   }
 
   let {
@@ -26,12 +28,14 @@
     focusedIndex,
     active,
     showHidden,
+    editingPath = false,
     onPathChange,
     onEntriesLoaded,
     onSelect,
     onFocus,
     onSort,
     onError,
+    onEditPathEnd,
   }: Props = $props();
 
   let containerRef: HTMLDivElement;
@@ -83,7 +87,7 @@
   onclick={handlePaneClick}
   role="region"
 >
-  <PathBar path={pane.path} onNavigate={handleNavigate} />
+  <PathBar path={pane.path} editing={editingPath} onNavigate={handleNavigate} onEditEnd={onEditPathEnd} />
 
   {#if pane.loading}
     <div class="loading">Loading...</div>

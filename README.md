@@ -65,6 +65,7 @@ File Manager is een krachtige bestandsbeheerder met twee panelen, geïnspireerd 
 | Toets | Actie |
 |-------|-------|
 | `Ctrl+P` | Commandopalet openen |
+| `Ctrl+L` | Pad invoeren |
 | `/` | Zoeken/filteren |
 | `Escape` | Filter wissen |
 | `F1` | Help weergeven |
