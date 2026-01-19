@@ -4,6 +4,28 @@ Een snelle, moderne dual-pane bestandsbeheerder gebouwd met Tauri, SvelteKit en 
 
 ---
 
+## Installatie
+
+### Windows
+
+Download de laatste release van de [Releases](../../releases) pagina:
+- **MSI Installer:** `FileManager_x.x.x_x64_en-US.msi` — Aanbevolen voor de meeste gebruikers
+- **Portable:** `filemanager.exe` — Geen installatie nodig
+
+### Zelf bouwen
+
+```bash
+# Vereisten: Node.js, Rust, Bun
+bun install
+bun run tauri build
+```
+
+De build output staat in:
+- `src-tauri/target/release/filemanager.exe`
+- `src-tauri/target/release/bundle/msi/FileManager_x.x.x_x64_en-US.msi`
+
+---
+
 ## Gebruikershandleiding
 
 ### Overzicht
@@ -110,12 +132,29 @@ Druk op `Ctrl+P` voor snelle toegang tot alle commando's. Typ om te zoeken.
 
 ## Development
 
+### Vereisten
+
+- [Node.js](https://nodejs.org/) (v18+)
+- [Rust](https://rustup.rs/)
+- [Bun](https://bun.sh/) (of npm/pnpm)
+
 ### Recommended IDE Setup
 
 [VS Code](https://code.visualstudio.com/) + [Svelte](https://marketplace.visualstudio.com/items?itemName=svelte.svelte-vscode) + [Tauri](https://marketplace.visualstudio.com/items?itemName=tauri-apps.tauri-vscode) + [rust-analyzer](https://marketplace.visualstudio.com/items?itemName=rust-lang.rust-analyzer).
+
+### Commands
+
+```bash
+bun install          # Installeer dependencies
+bun run dev          # Start development server
+bun run tauri dev    # Start Tauri in development mode
+bun run build        # Build frontend
+bun run tauri build  # Build production release
+bun run check        # Type-check
+```
 
 ### Tech Stack
 
 - **Frontend:** SvelteKit + TypeScript
 - **Backend:** Tauri (Rust)
-- **Styling:** Tailwind CSS
+- **Styling:** Custom CSS
