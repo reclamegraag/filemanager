@@ -1,5 +1,6 @@
 // Web-compatible IPC implementation
-const isTauri = typeof window !== 'undefined' && (window as any).__TAURI__;
+// Tauri v2: check for __TAURI_INTERNALS__ instead of __TAURI__
+const isTauri = typeof window !== 'undefined' && '__TAURI_INTERNALS__' in window;
 
 // Mock data for web version
 const mockFiles: FileEntry[] = [
