@@ -1,0 +1,33 @@
+$ tauri dev
+     Running BeforeDevCommand (`bun run dev`)
+$ vite dev
+        Warn Waiting for your frontend dev server to start on http://localhost:1420/...
+        Warn Waiting for your frontend dev server to start on http://localhost:1420/...
+
+  VITE v6.4.1  ready in 13404 ms
+
+  ➜  Local:   http://127.0.0.1:1420/
+     Running DevCommand (`cargo  run --no-default-features --color always --`)
+        Info Watching /mnt/c/code/filemanager/src-tauri for changes...
+[1m[32m   Compiling[0m cssparser v0.29.6
+[1m[32m   Compiling[0m markup5ever v0.14.1
+[1m[32m   Compiling[0m selectors v0.24.0
+[1m[36m    Building[0m [======================>  ] 505/528: markup5ever, cssparser, s...[1m[36m    Building[0m [======================>  ] 506/528: markup5ever, selectors      [K[1m[32m   Compiling[0m html5ever v0.29.1
+[1m[36m    Building[0m [======================>  ] 506/528: markup5ever, html5ever, s...[1m[36m    Building[0m [=======================> ] 507/528: html5ever, selectors        [1m[36m    Building[0m [=======================> ] 508/528: html5ever                   [K[1m[32m   Compiling[0m kuchikiki v0.8.8-speedreader
+[1m[36m    Building[0m [=======================> ] 508/528: html5ever, kuchikiki        [1m[36m    Building[0m [=======================> ] 509/528: kuchikiki                   [K[1m[32m   Compiling[0m tauri-utils v2.8.1
+[1m[36m    Building[0m [=======================> ] 509/528: tauri-utils, kuchikiki      [1m[36m    Building[0m [=======================> ] 510/528: tauri-utils                 [K[1m[32m   Compiling[0m tauri-build v2.5.3
+[1m[32m   Compiling[0m tauri-plugin v2.5.2
+[1m[32m   Compiling[0m tauri-codegen v2.5.2
+[1m[36m    Building[0m [=======================> ] 510/528: tauri-codegen, tauri-plug...[1m[36m    Building[0m [=======================> ] 511/528: tauri-codegen, tauri-util...[1m[36m    Building[0m [=======================> ] 512/528: tauri-codegen, tauri-utils  [1m[36m    Building[0m [=======================> ] 513/528: tauri-utils                 [K[1m[32m   Compiling[0m tauri v2.9.5
+[1m[32m   Compiling[0m tauri-plugin-opener v2.5.3
+[1m[32m   Compiling[0m tauri-macros v2.5.2
+[1m[32m   Compiling[0m tauri-plugin-shell v2.3.4
+[1m[32m   Compiling[0m filemanager v0.1.0 (/mnt/c/code/filemanager/src-tauri)
+[1m[36m    Building[0m [=======================> ] 514/528: tauri-macros, tauri-plugi...[1m[36m    Building[0m [=======================> ] 515/528: tauri-macros, tauri-plugi...[1m[36m    Building[0m [=======================> ] 516/528: tauri-macros, tauri(build...[1m[36m    Building[0m [=======================> ] 517/528: tauri-macros, tauri(build...[1m[36m    Building[0m [=======================> ] 518/528: tauri-macros, tauri(build)  [1m[36m    Building[0m [=======================> ] 519/528: tauri(build)                [1m[36m    Building[0m [=======================> ] 520/528: tauri-plugin-shell(build)   [1m[36m    Building[0m [=======================> ] 520/528: tauri-plugin-opener(build...[1m[36m    Building[0m [=======================> ] 522/528: tauri, filemanager(build)   [1m[36m    Building[0m [=======================> ] 523/528: tauri                       [1m[36m    Building[0m [=======================> ] 523/528: tauri-plugin-shell, tauri...[1m[36m    Building[0m [=======================> ] 524/528: tauri-plugin-shell, tauri...[1m[36m    Building[0m [=======================> ] 525/528: tauri-plugin-shell          [1m[36m    Building[0m [=======================> ] 526/528: filemanager                 [1m[36m    Building[0m [=======================> ] 527/528: filemanager(bin)            [K[1m[32m    Finished[0m ]8;;https://doc.rust-lang.org/cargo/reference/profiles.html#default-profiles\`dev` profile [unoptimized + debuginfo]]8;;\ target(s) in 59.93s
+[1m[32m     Running[0m `target/debug/filemanager`
+
+thread 'main' panicked at /home/reclamegraag/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tao-0.34.5/src/platform_impl/linux/event_loop.rs:218:53:
+Failed to initialize gtk backend!: BoolError { message: "Failed to initialize GTK", filename: "/home/reclamegraag/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/gtk-0.18.2/src/rt.rs", function: "gtk::rt::init", line: 141 }
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+error: script "dev" exited with code 143
+error: script "tauri" exited with code 101

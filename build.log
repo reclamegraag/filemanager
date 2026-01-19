@@ -1,0 +1,365 @@
+$ tauri build
+        Info Looking up installed tauri packages to check mismatched versions...
+     Running beforeBuildCommand `bun run build`
+$ vite build
+vite v6.4.1 building SSR bundle for production...
+transforming...
+3:59:26 PM [vite-plugin-svelte] src/lib/components/CommandPalette.svelte:73:4 Non-interactive element `<div>` should not be assigned mouse or keyboard event listeners
+https://svelte.dev/e/a11y_no_noninteractive_element_interactions
+71:   <div class="overlay" onclick={onClose} role="dialog" tabindex="-1">
+72:     <!-- svelte-ignore a11y_no_static_element_interactions -->
+73:     <div class="palette" onclick={(e) => e.stopPropagation()} role="document">
+              ^
+74:       <input
+75:         bind:this={inputRef}
+3:59:26 PM [vite-plugin-svelte] src/lib/components/CommandPalette.svelte:21:6 `inputRef` is updated, but is not declared with `$state(...)`. Changing its value will not correctly trigger updates
+https://svelte.dev/e/non_reactive_update
+19:   let query = $state('');
+20:   let selectedIndex = $state(0);
+21:   let inputRef: HTMLInputElement;
+                                    ^
+22: 
+23:   let filteredCommands = $derived(() => {
+3:59:26 PM [vite-plugin-svelte] src/lib/components/Pane.svelte:79:0 Non-interactive element `<div>` should not be assigned mouse or keyboard event listeners
+https://svelte.dev/e/a11y_no_noninteractive_element_interactions
+77: 
+78: <!-- svelte-ignore a11y_click_events_have_key_events a11y_no_noninteractive_element_interactions -->
+79: <div
+        ^
+80:   class="pane"
+81:   class:active
+3:59:26 PM [vite-plugin-svelte] src/lib/components/HelpOverlay.svelte:44:4 Non-interactive element `<div>` should not be assigned mouse or keyboard event listeners
+https://svelte.dev/e/a11y_no_noninteractive_element_interactions
+42:   <div class="overlay" onclick={onClose} role="dialog" tabindex="-1">
+43:     <!-- svelte-ignore a11y_no_static_element_interactions -->
+44:     <div class="help" onclick={(e) => e.stopPropagation()} role="document">
+              ^
+45:       <header class="header">
+46:         <h2>Keyboard Shortcuts</h2>
+3:59:26 PM [vite-plugin-svelte] src/lib/components/BatchRenameDialog.svelte:71:4 Non-interactive element `<div>` should not be assigned mouse or keyboard event listeners
+https://svelte.dev/e/a11y_no_noninteractive_element_interactions
+69:   <div class="overlay" onclick={onClose} onkeydown={handleKeyDown} role="dialog" tabindex="-1">
+70:     <!-- svelte-ignore a11y_no_static_element_interactions -->
+71:     <div class="dialog" onclick={(e) => e.stopPropagation()} role="document">
+              ^
+72:       <h2 class="title">Batch Rename</h2>
+73: 
+✓ 218 modules transformed.
+rendering chunks...
+vite v6.4.1 building for production...
+transforming...
+3:59:44 PM [vite-plugin-svelte] src/lib/components/CommandPalette.svelte:73:4 Non-interactive element `<div>` should not be assigned mouse or keyboard event listeners
+https://svelte.dev/e/a11y_no_noninteractive_element_interactions
+71:   <div class="overlay" onclick={onClose} role="dialog" tabindex="-1">
+72:     <!-- svelte-ignore a11y_no_static_element_interactions -->
+73:     <div class="palette" onclick={(e) => e.stopPropagation()} role="document">
+              ^
+74:       <input
+75:         bind:this={inputRef}
+3:59:44 PM [vite-plugin-svelte] src/lib/components/CommandPalette.svelte:21:6 `inputRef` is updated, but is not declared with `$state(...)`. Changing its value will not correctly trigger updates
+https://svelte.dev/e/non_reactive_update
+19:   let query = $state('');
+20:   let selectedIndex = $state(0);
+21:   let inputRef: HTMLInputElement;
+                                    ^
+22: 
+23:   let filteredCommands = $derived(() => {
+3:59:44 PM [vite-plugin-svelte] src/lib/components/Pane.svelte:79:0 Non-interactive element `<div>` should not be assigned mouse or keyboard event listeners
+https://svelte.dev/e/a11y_no_noninteractive_element_interactions
+77: 
+78: <!-- svelte-ignore a11y_click_events_have_key_events a11y_no_noninteractive_element_interactions -->
+79: <div
+        ^
+80:   class="pane"
+81:   class:active
+3:59:44 PM [vite-plugin-svelte] src/lib/components/HelpOverlay.svelte:44:4 Non-interactive element `<div>` should not be assigned mouse or keyboard event listeners
+https://svelte.dev/e/a11y_no_noninteractive_element_interactions
+42:   <div class="overlay" onclick={onClose} role="dialog" tabindex="-1">
+43:     <!-- svelte-ignore a11y_no_static_element_interactions -->
+44:     <div class="help" onclick={(e) => e.stopPropagation()} role="document">
+              ^
+45:       <header class="header">
+46:         <h2>Keyboard Shortcuts</h2>
+3:59:44 PM [vite-plugin-svelte] src/lib/components/BatchRenameDialog.svelte:71:4 Non-interactive element `<div>` should not be assigned mouse or keyboard event listeners
+https://svelte.dev/e/a11y_no_noninteractive_element_interactions
+69:   <div class="overlay" onclick={onClose} onkeydown={handleKeyDown} role="dialog" tabindex="-1">
+70:     <!-- svelte-ignore a11y_no_static_element_interactions -->
+71:     <div class="dialog" onclick={(e) => e.stopPropagation()} role="document">
+              ^
+72:       <h2 class="title">Batch Rename</h2>
+73: 
+✓ 181 modules transformed.
+rendering chunks...
+computing gzip size...
+.svelte-kit/output/client/_app/version.json                        0.03 kB │ gzip:  0.05 kB
+.svelte-kit/output/client/.vite/manifest.json                      3.04 kB │ gzip:  0.59 kB
+.svelte-kit/output/client/_app/immutable/assets/2.i9wsUt8W.css    11.56 kB │ gzip:  2.74 kB
+.svelte-kit/output/client/_app/immutable/entry/start.CBiL7GJx.js   0.08 kB │ gzip:  0.09 kB
+.svelte-kit/output/client/_app/immutable/nodes/0.DbrV1dyS.js       0.45 kB │ gzip:  0.32 kB
+.svelte-kit/output/client/_app/immutable/nodes/1.DAzC527G.js       1.03 kB │ gzip:  0.60 kB
+.svelte-kit/output/client/_app/immutable/chunks/DJ89-BCZ.js        1.09 kB │ gzip:  0.62 kB
+.svelte-kit/output/client/_app/immutable/chunks/CvbF1r4u.js        1.26 kB │ gzip:  0.69 kB
+.svelte-kit/output/client/_app/immutable/chunks/CkzxAtmf.js        1.41 kB │ gzip:  0.79 kB
+.svelte-kit/output/client/_app/immutable/chunks/BchrhqK6.js        2.27 kB │ gzip:  0.99 kB
+.svelte-kit/output/client/_app/immutable/entry/app.B2mElHmA.js     6.90 kB │ gzip:  3.20 kB
+.svelte-kit/output/client/_app/immutable/chunks/DWLS-RSi.js        7.79 kB │ gzip:  3.27 kB
+.svelte-kit/output/client/_app/immutable/chunks/DP2omrqP.js       22.80 kB │ gzip:  9.04 kB
+.svelte-kit/output/client/_app/immutable/chunks/B2A6NHL2.js       27.37 kB │ gzip: 10.59 kB
+.svelte-kit/output/client/_app/immutable/nodes/2.CvsCoHpp.js      35.20 kB │ gzip: 12.24 kB
+✓ built in 2.78s
+.svelte-kit/output/server/.vite/manifest.json                         3.09 kB
+.svelte-kit/output/server/_app/immutable/assets/_page.DZvwGS-I.css   11.47 kB
+.svelte-kit/output/server/entries/pages/_layout.ts.js                 0.04 kB
+.svelte-kit/output/server/chunks/false.js                             0.05 kB
+.svelte-kit/output/server/entries/fallbacks/layout.svelte.js          0.17 kB
+.svelte-kit/output/server/internal.js                                 0.33 kB
+.svelte-kit/output/server/chunks/environment.js                       0.62 kB
+.svelte-kit/output/server/chunks/utils.js                             1.15 kB
+.svelte-kit/output/server/entries/fallbacks/error.svelte.js           1.36 kB
+.svelte-kit/output/server/chunks/index.js                             2.66 kB
+.svelte-kit/output/server/chunks/exports.js                           5.54 kB
+.svelte-kit/output/server/remote-entry.js                            18.29 kB
+.svelte-kit/output/server/chunks/shared.js                           18.45 kB
+.svelte-kit/output/server/entries/pages/_page.svelte.js              23.04 kB
+.svelte-kit/output/server/chunks/index2.js                           27.93 kB
+.svelte-kit/output/server/chunks/internal.js                         29.07 kB
+.svelte-kit/output/server/chunks/context.js                          52.84 kB
+.svelte-kit/output/server/index.js                                  126.94 kB
+✓ built in 32.49s
+
+Run npm run preview to preview your production build locally.
+
+> Using @sveltejs/adapter-static
+  Wrote site to "build"
+  ✔ done
+   Compiling quote v1.0.43
+   Compiling proc-macro2 v1.0.105
+   Compiling serde_core v1.0.228
+   Compiling serde v1.0.228
+   Compiling target-lexicon v0.12.16
+   Compiling libc v0.2.180
+   Compiling zerocopy v0.8.33
+   Compiling syn v1.0.109
+   Compiling getrandom v0.1.16
+   Compiling proc-macro-error-attr v1.0.4
+   Compiling thiserror v1.0.69
+   Compiling icu_normalizer_data v2.1.1
+   Compiling parking_lot_core v0.9.12
+   Compiling proc-macro-error v1.0.4
+   Compiling proc-macro-hack v0.5.20+deprecated
+   Compiling getrandom v0.3.4
+   Compiling cfg-expr v0.15.8
+   Compiling serde_json v1.0.149
+   Compiling crossbeam-utils v0.8.21
+   Compiling indexmap v1.9.3
+   Compiling schemars v0.8.22
+   Compiling gio v0.18.4
+   Compiling memoffset v0.9.1
+   Compiling typenum v1.19.0
+   Compiling generic-array v0.14.7
+   Compiling concurrent-queue v2.5.0
+   Compiling errno v0.3.14
+   Compiling x11 v2.21.0
+   Compiling rustix v1.1.3
+   Compiling getrandom v0.2.17
+   Compiling dirs-sys v0.5.0
+   Compiling signal-hook-registry v1.4.8
+   Compiling syn v2.0.114
+   Compiling event-listener v5.4.1
+   Compiling x11-dl v2.21.0
+   Compiling crossbeam-channel v0.5.15
+   Compiling ppv-lite86 v0.2.21
+   Compiling parking_lot v0.12.5
+   Compiling rand_core v0.6.4
+   Compiling rand_core v0.5.1
+   Compiling tauri-runtime v2.9.2
+   Compiling dirs v6.0.0
+   Compiling semver v1.0.27
+   Compiling toml_datetime v0.7.5+spec-1.1.0
+   Compiling serde_spanned v1.0.4
+   Compiling uuid v1.19.0
+   Compiling camino v1.2.2
+   Compiling erased-serde v0.4.9
+   Compiling event-listener-strategy v0.5.4
+   Compiling rand_chacha v0.3.1
+   Compiling bitflags v2.10.0
+   Compiling rand_pcg v0.2.1
+   Compiling rand_chacha v0.2.2
+   Compiling toml v0.9.11+spec-1.1.0
+   Compiling toml_edit v0.23.10+spec-1.0.0
+   Compiling rustc_version v0.4.1
+   Compiling cfb v0.7.3
+   Compiling serde-untagged v0.1.9
+   Compiling block-buffer v0.10.4
+   Compiling crypto-common v0.1.7
+   Compiling rand v0.8.5
+   Compiling rand v0.7.3
+   Compiling async-channel v2.5.0
+   Compiling signal-hook v0.3.18
+   Compiling digest v0.10.7
+   Compiling tauri-runtime-wry v2.9.3
+   Compiling mio v1.1.1
+   Compiling field-offset v0.3.6
+   Compiling socket2 v0.6.1
+   Compiling async-lock v3.4.2
+   Compiling os_pipe v1.2.3
+   Compiling infer v0.19.0
+   Compiling proc-macro-crate v3.4.0
+   Compiling embed-resource v3.0.6
+   Compiling sha2 v0.10.9
+   Compiling phf_generator v0.11.3
+   Compiling phf_generator v0.8.0
+   Compiling phf_generator v0.10.0
+   Compiling open v5.3.3
+   Compiling sigchld v0.2.4
+   Compiling blocking v1.6.2
+   Compiling async-executor v1.13.3
+   Compiling async-broadcast v0.7.2
+   Compiling tauri-winres v0.3.5
+   Compiling phf_codegen v0.11.3
+   Compiling synstructure v0.13.2
+   Compiling darling_core v0.21.3
+   Compiling string_cache_codegen v0.5.4
+   Compiling phf_codegen v0.8.0
+   Compiling serde_derive_internals v0.29.1
+   Compiling shared_child v1.1.1
+   Compiling dirs-sys v0.4.1
+   Compiling trash v5.2.5
+   Compiling dirs v5.0.1
+   Compiling selectors v0.24.0
+   Compiling markup5ever v0.14.1
+   Compiling cssparser v0.29.6
+   Compiling phf_macros v0.10.0
+   Compiling serde_derive v1.0.228
+   Compiling zerofrom-derive v0.1.6
+   Compiling yoke-derive v0.8.1
+   Compiling zerovec-derive v0.11.2
+   Compiling displaydoc v0.2.5
+   Compiling thiserror-impl v1.0.69
+   Compiling thiserror-impl v2.0.18
+   Compiling phf_macros v0.11.3
+   Compiling futures-macro v0.3.31
+   Compiling cssparser-macros v0.6.1
+   Compiling ctor v0.2.9
+   Compiling match_token v0.1.0
+   Compiling derive_more v0.99.20
+   Compiling schemars_derive v0.8.22
+   Compiling enumflags2_derive v0.7.12
+   Compiling dlopen2_derive v0.4.3
+   Compiling serialize-to-javascript-impl v0.1.2
+   Compiling tokio-macros v2.6.0
+   Compiling serde_repr v0.1.20
+   Compiling polling v3.11.0
+   Compiling async-io v2.6.0
+   Compiling tracing-attributes v0.1.31
+   Compiling async-trait v0.1.89
+   Compiling async-signal v0.2.13
+   Compiling darling_macro v0.21.3
+   Compiling dlopen2 v0.8.2
+   Compiling tokio v1.49.0
+   Compiling futures-util v0.3.31
+   Compiling phf v0.11.3
+   Compiling async-process v2.5.0
+   Compiling phf v0.10.1
+   Compiling thiserror v2.0.18
+   Compiling zerofrom v0.1.6
+   Compiling yoke v0.8.1
+   Compiling tracing v0.1.44
+   Compiling zerovec v0.11.5
+   Compiling zerotrie v0.2.3
+   Compiling darling v0.21.3
+   Compiling futures-executor v0.3.31
+   Compiling tinystr v0.8.2
+   Compiling potential_utf v0.1.4
+   Compiling serde_with_macros v3.16.1
+   Compiling toml_datetime v0.6.3
+   Compiling serde_spanned v0.6.9
+   Compiling string_cache v0.8.9
+   Compiling cargo-platform v0.1.9
+   Compiling jsonptr v0.6.3
+   Compiling cargo_toml v0.22.3
+   Compiling zvariant_utils v3.3.0
+   Compiling enumflags2 v0.7.12
+   Compiling dpi v0.1.2
+   Compiling keyboard-types v0.7.0
+   Compiling serialize-to-javascript v0.1.2
+   Compiling icu_collections v2.1.1
+   Compiling toml_edit v0.20.2
+   Compiling toml_edit v0.19.15
+   Compiling cargo_metadata v0.19.2
+   Compiling icu_locale_core v2.1.1
+   Compiling json-patch v3.0.1
+   Compiling zvariant_derive v5.9.2
+   Compiling icu_provider v2.1.1
+   Compiling proc-macro-crate v1.3.1
+   Compiling toml v0.8.2
+   Compiling proc-macro-crate v2.0.2
+   Compiling icu_normalizer v2.1.1
+   Compiling icu_properties v2.1.2
+   Compiling serde_with v3.16.1
+   Compiling system-deps v6.2.2
+   Compiling gtk3-macros v0.18.2
+   Compiling glib-macros v0.18.5
+   Compiling zvariant v5.9.2
+   Compiling idna_adapter v1.2.1
+   Compiling glib-sys v0.18.1
+   Compiling gobject-sys v0.18.0
+   Compiling gio-sys v0.18.1
+   Compiling gdk-sys v0.18.2
+   Compiling pango-sys v0.18.0
+   Compiling gdk-pixbuf-sys v0.18.0
+   Compiling cairo-sys-rs v0.18.2
+   Compiling atk-sys v0.18.2
+   Compiling gtk-sys v0.18.2
+   Compiling soup3-sys v0.5.0
+   Compiling javascriptcore-rs-sys v1.1.1
+   Compiling webkit2gtk-sys v2.0.1
+   Compiling gdkx11-sys v0.18.2
+   Compiling idna v1.1.0
+   Compiling url v2.5.8
+   Compiling zbus_names v4.3.1
+   Compiling urlpattern v0.3.0
+   Compiling gtk v0.18.2
+   Compiling zbus_macros v5.13.1
+   Compiling wry v0.53.5
+   Compiling tauri-utils v2.8.1
+   Compiling zbus v5.13.1
+   Compiling glib v0.18.5
+   Compiling gdkwayland-sys v0.18.2
+   Compiling html5ever v0.29.1
+   Compiling kuchikiki v0.8.8-speedreader
+   Compiling tauri-build v2.5.3
+   Compiling tauri-plugin v2.5.2
+   Compiling tauri-codegen v2.5.2
+   Compiling cairo-rs v0.18.5
+   Compiling atk v0.18.2
+   Compiling javascriptcore-rs v1.1.2
+   Compiling tauri v2.9.5
+   Compiling tauri-plugin-opener v2.5.3
+   Compiling tauri-plugin-shell v2.3.4
+   Compiling tauri-macros v2.5.2
+   Compiling filemanager v0.1.0 (/mnt/c/code/filemanager/src-tauri)
+   Compiling pango v0.18.3
+   Compiling gdk-pixbuf v0.18.5
+   Compiling soup3 v0.5.0
+   Compiling gdk v0.18.2
+   Compiling gdkx11 v0.18.2
+   Compiling webkit2gtk v2.0.1
+   Compiling tao v0.34.5
+   Compiling muda v0.17.1
+    Finished `release` profile [optimized] target(s) in 2m 44s
+       Built application at: /mnt/c/code/filemanager/src-tauri/target/release/filemanager
+        Info Patching binary "/mnt/c/code/filemanager/src-tauri/target/release/filemanager" for type deb
+    Bundling FileManager_0.1.0_amd64.deb (/mnt/c/code/filemanager/src-tauri/target/release/bundle/deb/FileManager_0.1.0_amd64.deb)
+        Info Patching binary "/mnt/c/code/filemanager/src-tauri/target/release/filemanager" for type rpm
+    Bundling FileManager-0.1.0-1.x86_64.rpm (/mnt/c/code/filemanager/src-tauri/target/release/bundle/rpm/FileManager-0.1.0-1.x86_64.rpm)
+        Info Patching binary "/mnt/c/code/filemanager/src-tauri/target/release/filemanager" for type appimage
+ Downloading https://github.com/tauri-apps/binary-releases/releases/download/apprun-old/AppRun-x86_64
+ Downloading https://github.com/tauri-apps/binary-releases/releases/download/linuxdeploy/linuxdeploy-x86_64.AppImage
+ Downloading https://github.com/linuxdeploy/linuxdeploy-plugin-appimage/releases/download/continuous/linuxdeploy-plugin-appimage-x86_64.AppImage
+    Bundling FileManager_0.1.0_amd64.AppImage (/mnt/c/code/filemanager/src-tauri/target/release/bundle/appimage/FileManager_0.1.0_amd64.AppImage)
+    Finished 3 bundles at:
+        /mnt/c/code/filemanager/src-tauri/target/release/bundle/deb/FileManager_0.1.0_amd64.deb
+        /mnt/c/code/filemanager/src-tauri/target/release/bundle/rpm/FileManager-0.1.0-1.x86_64.rpm
+        /mnt/c/code/filemanager/src-tauri/target/release/bundle/appimage/FileManager_0.1.0_amd64.AppImage
+
