@@ -22,6 +22,7 @@ export type KeyAction =
   | 'start_filter'
   | 'clear_filter'
   | 'edit_path'
+  | 'add_bookmark'
   | 'bookmark_1'
   | 'bookmark_2'
   | 'bookmark_3'
@@ -76,6 +77,7 @@ export const defaultKeyBindings: KeyBinding[] = [
   { key: 'F1', action: 'help' },
 
   // Bookmarks
+  { key: 'd', ctrl: true, action: 'add_bookmark' },
   { key: '1', ctrl: true, action: 'bookmark_1' },
   { key: '2', ctrl: true, action: 'bookmark_2' },
   { key: '3', ctrl: true, action: 'bookmark_3' },

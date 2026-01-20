@@ -7,9 +7,15 @@
     wslDistros: WslDistro[];
     recentPaths: string[];
     onNavigate: (path: string) => void;
+    onRemoveBookmark?: (path: string) => void;
   }
 
-  let { bookmarks, wslDistros, recentPaths, onNavigate }: Props = $props();
+  let { bookmarks, wslDistros, recentPaths, onNavigate, onRemoveBookmark }: Props = $props();
+
+  function handleRemove(event: MouseEvent, path: string) {
+    event.stopPropagation();
+    onRemoveBookmark?.(path);
+  }
 </script>
 
 <aside class="sidebar">
@@ -17,7 +23,7 @@
     <h3 class="section-title">Bookmarks</h3>
     <ul class="list">
       {#each bookmarks as bookmark}
-        <li>
+        <li class="bookmark-item">
           <button class="item" onclick={() => onNavigate(bookmark.path)}>
             <span class="icon">⭐</span>
             <span class="label">{bookmark.name}</span>
@@ -25,6 +31,7 @@
               <span class="shortcut">Ctrl+{bookmark.shortcut}</span>
             {/if}
           </button>
+          <button class="remove-btn" onclick={(e) => handleRemove(e, bookmark.path)} title="Remove bookmark">×</button>
         </li>
       {/each}
     </ul>
@@ -93,6 +100,44 @@
     list-style: none;
     padding: 0;
     margin: 0;
+  }
+
+  .bookmark-item {
+    position: relative;
+    display: flex;
+    align-items: center;
+  }
+
+  .bookmark-item .item {
+    flex: 1;
+    padding-right: 28px;
+  }
+
+  .bookmark-item .remove-btn {
+    position: absolute;
+    right: 8px;
+    width: 18px;
+    height: 18px;
+    padding: 0;
+    background: none;
+    border: none;
+    border-radius: 3px;
+    font-size: 16px;
+    line-height: 1;
+    color: var(--muted-fg);
+    cursor: pointer;
+    opacity: 0;
+    transition: opacity 0.15s, background-color 0.15s;
+  }
+
+  .bookmark-item:hover .remove-btn,
+  .bookmark-item .remove-btn:focus {
+    opacity: 1;
+  }
+
+  .bookmark-item .remove-btn:hover {
+    background: var(--hover-bg);
+    color: var(--error-fg, #e55);
   }
 
   .item {

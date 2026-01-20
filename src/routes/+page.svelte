@@ -16,6 +16,7 @@
     getHomeDirectory,
     getWslDistros,
     loadConfig,
+    saveConfig,
     copyFiles,
     moveFiles,
     deleteFiles,
@@ -235,6 +236,27 @@
       case 'edit_path':
         editingPath = $activePane;
         break;
+
+      case 'add_bookmark':
+        handleAddBookmark();
+        break;
+
+      case 'bookmark_1':
+      case 'bookmark_2':
+      case 'bookmark_3':
+      case 'bookmark_4':
+      case 'bookmark_5':
+      case 'bookmark_6':
+      case 'bookmark_7':
+      case 'bookmark_8':
+      case 'bookmark_9': {
+        const index = parseInt(action.replace('bookmark_', '')) - 1;
+        const bookmark = $config.bookmarks[index];
+        if (bookmark) {
+          handleNavigate(bookmark.path);
+        }
+        break;
+      }
     }
   }
 
@@ -422,6 +444,67 @@
     paneStore.setPath(path);
     config.addRecentPath(path);
   }
+
+  async function handleAddBookmark() {
+    const paneState = $activePane === 'left' ? $leftPane : $rightPane;
+    const path = paneState.path;
+
+    // Check if already bookmarked
+    if ($config.bookmarks.some(b => b.path === path)) {
+      return;
+    }
+
+    // Get folder name
+    const name = path.split(/[/\\]/).pop() || path;
+
+    // Auto-assign shortcut 1-9 if available
+    const usedShortcuts = new Set($config.bookmarks.map(b => b.shortcut).filter(s => s !== null));
+    let shortcut: number | null = null;
+    for (let i = 1; i <= 9; i++) {
+      if (!usedShortcuts.has(i)) {
+        shortcut = i;
+        break;
+      }
+    }
+
+    config.addBookmark({ name, path, shortcut });
+
+    // Save to config file
+    const configToSave = {
+      bookmarks: [...$config.bookmarks, { name, path, shortcut }],
+      left_pane: { path: $leftPane.path, sort_column: $leftPane.sortColumn, sort_ascending: $leftPane.sortDirection === 'asc' },
+      right_pane: { path: $rightPane.path, sort_column: $rightPane.sortColumn, sort_ascending: $rightPane.sortDirection === 'asc' },
+      window: { x: null, y: null, width: 1200, height: 800, maximized: false },
+      show_hidden: showHidden,
+      recent_paths: $config.recentPaths,
+    };
+
+    try {
+      await saveConfig(configToSave);
+    } catch (e) {
+      console.error('Failed to save config:', e);
+    }
+  }
+
+  async function handleRemoveBookmark(path: string) {
+    config.removeBookmark(path);
+
+    // Save to config file
+    const configToSave = {
+      bookmarks: $config.bookmarks.filter(b => b.path !== path),
+      left_pane: { path: $leftPane.path, sort_column: $leftPane.sortColumn, sort_ascending: $leftPane.sortDirection === 'asc' },
+      right_pane: { path: $rightPane.path, sort_column: $rightPane.sortColumn, sort_ascending: $rightPane.sortDirection === 'asc' },
+      window: { x: null, y: null, width: 1200, height: 800, maximized: false },
+      show_hidden: showHidden,
+      recent_paths: $config.recentPaths,
+    };
+
+    try {
+      await saveConfig(configToSave);
+    } catch (e) {
+      console.error('Failed to save config:', e);
+    }
+  }
 </script>
 
 <svelte:window onkeydown={handleKeyDown} />
@@ -432,6 +515,7 @@
     {wslDistros}
     recentPaths={$config.recentPaths}
     onNavigate={handleNavigate}
+    onRemoveBookmark={handleRemoveBookmark}
   />
 
   <main class="main">
