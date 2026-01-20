@@ -12,6 +12,14 @@
 
   let { entry, selected, focused, onSelect, onOpen }: Props = $props();
 
+  let rowRef: HTMLDivElement;
+
+  $effect(() => {
+    if (focused && rowRef) {
+      rowRef.scrollIntoView({ block: 'nearest' });
+    }
+  });
+
   function handleClick(event: MouseEvent) {
     onSelect(entry, event);
   }
@@ -28,6 +36,7 @@
 </script>
 
 <div
+  bind:this={rowRef}
   class="file-row"
   class:selected
   class:focused
