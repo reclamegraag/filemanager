@@ -59,13 +59,18 @@
     transition: background-color 0.1s;
   }
 
-  .file-row:hover {
+  .file-row:hover:not(.selected) {
     background: var(--hover-bg);
+    opacity: 0.7;
   }
 
   .file-row.selected {
     background: var(--selection-bg);
     color: var(--selection-fg);
+  }
+
+  .file-row.selected:hover {
+    background: var(--selection-bg);
   }
 
   .file-row.focused {

@@ -7,7 +7,7 @@
   import CommandPalette from '$lib/components/CommandPalette.svelte';
   import HelpOverlay from '$lib/components/HelpOverlay.svelte';
   import BatchRenameDialog from '$lib/components/BatchRenameDialog.svelte';
-  import { leftPane, rightPane, activePane } from '$lib/stores/panes';
+  import { leftPane, rightPane, activePane, getSortedEntries } from '$lib/stores/panes';
   import { leftSelection, rightSelection } from '$lib/stores/selection';
   import { clipboard } from '$lib/stores/clipboard';
   import { config } from '$lib/stores/config';
@@ -44,9 +44,15 @@
     { id: 'rename', label: 'Rename', shortcut: 'F2', action: () => handleRename() },
     { id: 'batch-rename', label: 'Batch rename', action: () => handleBatchRename() },
     { id: 'refresh', label: 'Refresh', action: () => handleRefresh() },
-    { id: 'hidden', label: 'Toggle hidden files', action: () => showHidden = !showHidden },
+    { id: 'hidden', label: 'Toggle hidden files', action: () => toggleHidden() },
     { id: 'help', label: 'Keyboard shortcuts', shortcut: 'F1', action: () => helpOpen = true },
   ];
+
+  function toggleHidden() {
+    showHidden = !showHidden;
+    leftPane.setShowHidden(showHidden);
+    rightPane.setShowHidden(showHidden);
+  }
 
   onMount(async () => {
     try {
@@ -120,6 +126,9 @@
     const currentPaneStore = $activePane === 'left' ? leftPane : rightPane;
     let paneState: typeof $leftPane;
     currentPaneStore.subscribe(s => paneState = s)();
+    
+    // Use sorted/filtered entries for navigation (matches what UI displays)
+    const visibleEntries = getSortedEntries(paneState!);
 
     switch (action) {
       case 'switch_pane':
@@ -131,8 +140,8 @@
         currentSelection.subscribe(s => sel = s)();
         const newIndex = Math.max(0, sel!.focusedIndex - 1);
         currentSelection.setFocusedIndex(newIndex);
-        if (paneState!.entries[newIndex]) {
-          currentSelection.select(paneState!.entries[newIndex].path);
+        if (visibleEntries[newIndex]) {
+          currentSelection.select(visibleEntries[newIndex].path);
         }
         break;
       }
@@ -140,32 +149,32 @@
       case 'navigate_down': {
         let sel: { focusedIndex: number };
         currentSelection.subscribe(s => sel = s)();
-        const newIndex = Math.min(paneState!.entries.length - 1, sel!.focusedIndex + 1);
+        const newIndex = Math.min(visibleEntries.length - 1, sel!.focusedIndex + 1);
         currentSelection.setFocusedIndex(newIndex);
-        if (paneState!.entries[newIndex]) {
-          currentSelection.select(paneState!.entries[newIndex].path);
+        if (visibleEntries[newIndex]) {
+          currentSelection.select(visibleEntries[newIndex].path);
         }
         break;
       }
 
       case 'first_item':
         currentSelection.setFocusedIndex(0);
-        if (paneState!.entries[0]) {
-          currentSelection.select(paneState!.entries[0].path);
+        if (visibleEntries[0]) {
+          currentSelection.select(visibleEntries[0].path);
         }
         break;
 
       case 'last_item': {
-        const lastIndex = paneState!.entries.length - 1;
+        const lastIndex = visibleEntries.length - 1;
         currentSelection.setFocusedIndex(lastIndex);
-        if (paneState!.entries[lastIndex]) {
-          currentSelection.select(paneState!.entries[lastIndex].path);
+        if (visibleEntries[lastIndex]) {
+          currentSelection.select(visibleEntries[lastIndex].path);
         }
         break;
       }
 
       case 'select_all':
-        currentSelection.selectAll(paneState!.entries.map(e => e.path));
+        currentSelection.selectAll(visibleEntries.map(e => e.path));
         break;
 
       case 'command_palette':
@@ -184,9 +193,10 @@
       case 'enter_directory': {
         let sel: { focusedIndex: number };
         currentSelection.subscribe(s => sel = s)();
-        const entry = paneState!.entries[sel!.focusedIndex];
+        const entry = visibleEntries[sel!.focusedIndex];
         if (entry?.is_dir) {
           currentPaneStore.setPath(entry.path);
+          currentSelection.clear();
         }
         break;
       }
@@ -194,6 +204,7 @@
       case 'parent_directory': {
         const parent = paneState!.path.split(/[/\\]/).slice(0, -1).join('/') || '/';
         currentPaneStore.setPath(parent);
+        currentSelection.clear();
         break;
       }
 
@@ -371,19 +382,22 @@
     const selection = pane === 'left' ? leftSelection : rightSelection;
     const paneStore = pane === 'left' ? leftPane : rightPane;
 
+    let paneState: typeof $leftPane;
+    paneStore.subscribe(s => paneState = s)();
+    
+    // Use sorted/filtered entries for correct index mapping
+    const visibleEntries = getSortedEntries(paneState!);
+
     if (event.ctrlKey || event.metaKey) {
       selection.toggle(entry.path);
     } else if (event.shiftKey) {
       let sel: { anchorIndex: number | null };
       selection.subscribe(s => sel = s)();
 
-      let paneState: typeof $leftPane;
-      paneStore.subscribe(s => paneState = s)();
-
       if (sel!.anchorIndex !== null) {
-        const currentIndex = paneState!.entries.findIndex(e => e.path === entry.path);
+        const currentIndex = visibleEntries.findIndex(e => e.path === entry.path);
         selection.selectRange(
-          paneState!.entries.map(e => e.path),
+          visibleEntries.map(e => e.path),
           sel!.anchorIndex,
           currentIndex
         );
@@ -393,9 +407,7 @@
     } else {
       selection.select(entry.path);
 
-      let paneState: typeof $leftPane;
-      paneStore.subscribe(s => paneState = s)();
-      const index = paneState!.entries.findIndex(e => e.path === entry.path);
+      const index = visibleEntries.findIndex(e => e.path === entry.path);
       selection.setAnchorIndex(index);
       selection.setFocusedIndex(index);
     }
@@ -431,7 +443,7 @@
         active={$activePane === 'left'}
         {showHidden}
         editingPath={editingPath === 'left'}
-        onPathChange={(path) => leftPane.setPath(path)}
+        onPathChange={(path) => { leftPane.setPath(path); leftSelection.clear(); }}
         onEntriesLoaded={(entries) => leftPane.setEntries(entries)}
         onSelect={(entry, event) => handleSelect('left', entry, event)}
         onFocus={() => activePane.set('left')}
@@ -447,7 +459,7 @@
         active={$activePane === 'right'}
         {showHidden}
         editingPath={editingPath === 'right'}
-        onPathChange={(path) => rightPane.setPath(path)}
+        onPathChange={(path) => { rightPane.setPath(path); rightSelection.clear(); }}
         onEntriesLoaded={(entries) => rightPane.setEntries(entries)}
         onSelect={(entry, event) => handleSelect('right', entry, event)}
         onFocus={() => activePane.set('right')}

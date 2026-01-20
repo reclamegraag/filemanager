@@ -12,6 +12,51 @@ export interface PaneState {
   sortColumn: SortColumn;
   sortDirection: SortDirection;
   filter: string;
+  showHidden: boolean;
+}
+
+export function getSortedEntries(state: PaneState): FileEntry[] {
+  let result = state.entries;
+
+  // Filter hidden
+  if (!state.showHidden) {
+    result = result.filter(e => !e.is_hidden);
+  }
+
+  // Filter by search
+  if (state.filter) {
+    const lowerFilter = state.filter.toLowerCase();
+    result = result.filter(e => e.name.toLowerCase().includes(lowerFilter));
+  }
+
+  // Sort
+  const sorted = [...result];
+  sorted.sort((a, b) => {
+    // Directories always first
+    if (a.is_dir !== b.is_dir) {
+      return a.is_dir ? -1 : 1;
+    }
+
+    let comparison = 0;
+    switch (state.sortColumn) {
+      case 'name':
+        comparison = a.name.localeCompare(b.name, undefined, { sensitivity: 'base' });
+        break;
+      case 'size':
+        comparison = (a.size || 0) - (b.size || 0);
+        break;
+      case 'modified':
+        comparison = (a.modified || 0) - (b.modified || 0);
+        break;
+      case 'extension':
+        comparison = (a.extension || '').localeCompare(b.extension || '');
+        break;
+    }
+
+    return state.sortDirection === 'asc' ? comparison : -comparison;
+  });
+
+  return sorted;
 }
 
 function createPaneStore(initialPath: string) {
@@ -23,6 +68,7 @@ function createPaneStore(initialPath: string) {
     sortColumn: 'name',
     sortDirection: 'asc',
     filter: '',
+    showHidden: false,
   });
 
   return {
@@ -37,6 +83,7 @@ function createPaneStore(initialPath: string) {
       sortDirection: s.sortColumn === column && s.sortDirection === 'asc' ? 'desc' : 'asc',
     })),
     setFilter: (filter: string) => update(s => ({ ...s, filter })),
+    setShowHidden: (showHidden: boolean) => update(s => ({ ...s, showHidden })),
     reset: () => set({
       path: initialPath,
       entries: [],
@@ -45,6 +92,7 @@ function createPaneStore(initialPath: string) {
       sortColumn: 'name',
       sortDirection: 'asc',
       filter: '',
+      showHidden: false,
     }),
   };
 }
