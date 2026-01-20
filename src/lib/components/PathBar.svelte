@@ -78,18 +78,9 @@
     }
   });
 
-  // Fuzzy match: checks if query characters appear in order within name
-  function fuzzyMatch(query: string, name: string): boolean {
-    const lowerQuery = query.toLowerCase();
-    const lowerName = name.toLowerCase();
-
-    let queryIndex = 0;
-    for (let i = 0; i < lowerName.length && queryIndex < lowerQuery.length; i++) {
-      if (lowerName[i] === lowerQuery[queryIndex]) {
-        queryIndex++;
-      }
-    }
-    return queryIndex === lowerQuery.length;
+  // Prefix match: checks if name starts with query (case-insensitive)
+  function prefixMatch(query: string, name: string): boolean {
+    return name.toLowerCase().startsWith(query.toLowerCase());
   }
 
   // Get longest common prefix from array of strings
@@ -141,7 +132,7 @@
         .filter((e: FileEntry) => e.is_dir)
         .filter((e: FileEntry) => {
           if (!partial) return true;
-          return fuzzyMatch(partial, e.name);
+          return prefixMatch(partial, e.name);
         })
         .map((e: FileEntry) => e.name)
         .sort((a, b) => a.toLowerCase().localeCompare(b.toLowerCase()));
@@ -156,23 +147,23 @@
   }
 
   // Debounced input handler
-  function handleInput() {
+  function handleInput(event: Event) {
+    const value = (event.target as HTMLInputElement).value;
     if (fetchTimeout) clearTimeout(fetchTimeout);
     fetchTimeout = setTimeout(() => {
-      fetchSuggestions(inputValue);
-    }, 150);
+      fetchSuggestions(value);
+    }, 50);
   }
 
-  // Select a suggestion
+  // Select a suggestion - navigate directly to the selected folder
   function selectSuggestion(suggestion: string) {
     const { dir } = parseInputPath(inputValue);
-    const separator = dir.includes('\\') ? '\\' : '/';
-    inputValue = dir + suggestion + separator;
+    const fullPath = dir + suggestion;
+
     showDropdown = false;
     suggestions = [];
-    inputRef?.focus();
-    // Trigger new suggestions for the selected directory
-    fetchSuggestions(inputValue);
+    onNavigate(fullPath);
+    onEditEnd?.();
   }
 
   // Handle Tab key for autocomplete
@@ -258,7 +249,7 @@
   }
 </script>
 
-<nav class="path-bar">
+<nav class="path-bar" class:editing>
   {#if editing}
     <div class="input-wrapper">
       <input
@@ -280,6 +271,9 @@
                 onmousedown={handleSuggestionMouseDown}
                 onclick={() => handleSuggestionClick(suggestion)}
               >
+                <svg class="folder-icon" viewBox="0 0 20 20" fill="currentColor">
+                  <path d="M2 6a2 2 0 012-2h5l2 2h5a2 2 0 012 2v6a2 2 0 01-2 2H4a2 2 0 01-2-2V6z" />
+                </svg>
                 {suggestion}
               </button>
             </li>
@@ -316,6 +310,10 @@
     white-space: nowrap;
   }
 
+  .path-bar.editing {
+    overflow: visible;
+  }
+
   .input-wrapper {
     flex: 1;
     position: relative;
@@ -340,10 +338,10 @@
     right: 0;
     margin: 4px 0 0 0;
     padding: 4px 0;
-    background: var(--panel-bg);
+    background: var(--bg, #1e1e1e);
     border: 1px solid var(--border-color);
     border-radius: 4px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
     list-style: none;
     max-height: 200px;
     overflow-y: auto;
@@ -351,7 +349,9 @@
   }
 
   .suggestions li button {
-    display: block;
+    display: flex;
+    align-items: center;
+    gap: 8px;
     width: 100%;
     padding: 6px 12px;
     background: none;
@@ -360,6 +360,13 @@
     color: var(--fg);
     text-align: left;
     cursor: pointer;
+  }
+
+  .folder-icon {
+    width: 16px;
+    height: 16px;
+    flex-shrink: 0;
+    color: var(--muted-fg);
   }
 
   .suggestions li button:hover {
