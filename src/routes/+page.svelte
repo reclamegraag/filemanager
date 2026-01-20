@@ -74,6 +74,11 @@
   });
 
   function handleKeyDown(event: KeyboardEvent) {
+    // Skip when editing path - let the input handle keyboard events
+    if (editingPath !== null) {
+      return;
+    }
+
     // Handle filter mode input
     if (filterMode) {
       if (event.key === 'Escape') {
