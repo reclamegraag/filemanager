@@ -1,18 +1,20 @@
 <script lang="ts">
   import { tick } from 'svelte';
-  import { readDirectory, type FileEntry } from '$lib/utils/ipc';
+  import { readDirectory, normalizeWslPath, type FileEntry } from '$lib/utils/ipc';
 
   interface Props {
     path: string;
     editing?: boolean;
     onNavigate: (path: string) => void;
+    onEditStart?: () => void;
     onEditEnd?: () => void;
   }
 
-  let { path, editing = false, onNavigate, onEditEnd }: Props = $props();
+  let { path, editing = false, onNavigate, onEditStart, onEditEnd }: Props = $props();
 
   let inputValue = $state(path);
   let inputRef: HTMLInputElement;
+  let suggestionsRef: HTMLUListElement;
   let isInitializing = $state(false);
 
   // Autocomplete state
@@ -33,8 +35,22 @@
     const parts = path.split(/[/\\]/).filter(Boolean);
     const result: PathSegment[] = [];
 
+    // Handle UNC paths (\\wsl$\distro\... or \\server\share\...)
+    if (path.startsWith('\\\\') || path.startsWith('//')) {
+      // UNC paths need at least \\server\share as root
+      if (parts.length >= 2) {
+        const root = `\\\\${parts[0]}\\${parts[1]}`;
+        result.push({ name: `\\\\${parts[0]}\\${parts[1]}`, path: root });
+
+        let currentPath = root;
+        for (let i = 2; i < parts.length; i++) {
+          currentPath += '\\' + parts[i];
+          result.push({ name: parts[i], path: currentPath });
+        }
+      }
+    }
     // Handle Windows drive letters
-    if (path.match(/^[A-Z]:/i)) {
+    else if (path.match(/^[A-Z]:/i)) {
       let currentPath = parts[0] + '\\';
       result.push({ name: parts[0], path: currentPath });
 
@@ -125,9 +141,10 @@
     }
 
     const { dir, partial } = parseInputPath(inputPath);
+    const normalizedDir = normalizeWslPath(dir);
 
     try {
-      const entries = await readDirectory(dir);
+      const entries = await readDirectory(normalizedDir);
       const dirs = entries
         .filter((e: FileEntry) => e.is_dir)
         .filter((e: FileEntry) => {
@@ -155,10 +172,10 @@
     }, 50);
   }
 
-  // Select a suggestion - navigate directly to the selected folder
+  // Select a suggestion - navigate directly to the selected folder and close edit mode
   function selectSuggestion(suggestion: string) {
     const { dir } = parseInputPath(inputValue);
-    const fullPath = dir + suggestion;
+    const fullPath = normalizeWslPath(dir + suggestion);
 
     showDropdown = false;
     suggestions = [];
@@ -166,56 +183,98 @@
     onEditEnd?.();
   }
 
-  // Handle Tab key for autocomplete
+  // Enter a directory - update input and fetch new suggestions (stay in edit mode)
+  function enterDirectory(suggestion: string) {
+    const { dir } = parseInputPath(inputValue);
+    const separator = dir.includes('\\') || dir.match(/^[A-Z]:/i) ? '\\' : '/';
+    const fullPath = dir + suggestion + separator;
+
+    inputValue = fullPath;
+    selectedIndex = 0;
+    fetchSuggestions(fullPath);
+  }
+
+  // Handle Tab key - enter the highlighted directory
   function handleTab(): boolean {
-    if (!showDropdown || suggestions.length === 0) return false;
+    if (suggestions.length === 0 || selectedIndex >= suggestions.length) return false;
 
-    if (suggestions.length === 1) {
-      selectSuggestion(suggestions[0]);
-      return true;
-    }
-
-    // Multiple matches: insert longest common prefix
-    const prefix = getLongestCommonPrefix(suggestions);
-    const { dir, partial } = parseInputPath(inputValue);
-
-    if (prefix.length > partial.length) {
-      const separator = dir.includes('\\') ? '\\' : '/';
-      inputValue = dir + prefix;
-      fetchSuggestions(inputValue);
-      return true;
-    }
-
-    return false;
+    enterDirectory(suggestions[selectedIndex]);
+    return true;
   }
 
   function handleClick(segment: PathSegment) {
     onNavigate(segment.path);
   }
 
-  function handleInputKeyDown(event: KeyboardEvent) {
+  async function handleInputKeyDown(event: KeyboardEvent) {
     if (event.key === 'ArrowDown') {
       if (showDropdown && suggestions.length > 0) {
         event.preventDefault();
         selectedIndex = (selectedIndex + 1) % suggestions.length;
+        await tick();
+        scrollSelectedIntoView();
       }
     } else if (event.key === 'ArrowUp') {
       if (showDropdown && suggestions.length > 0) {
         event.preventDefault();
         selectedIndex = (selectedIndex - 1 + suggestions.length) % suggestions.length;
+        await tick();
+        scrollSelectedIntoView();
       }
     } else if (event.key === 'Tab') {
-      if (handleTab()) {
-        event.preventDefault();
+      event.preventDefault();
+      // Cancel pending debounce
+      if (fetchTimeout) {
+        clearTimeout(fetchTimeout);
+        fetchTimeout = null;
+      }
+      
+      if (inputValue.trim()) {
+        // Remember current selection before fetching
+        const currentSelection = suggestions.length > 0 ? suggestions[selectedIndex] : null;
+        
+        // Fetch fresh suggestions
+        await fetchSuggestions(inputValue);
+        
+        // Try to restore the previous selection if it still exists
+        if (currentSelection && suggestions.includes(currentSelection)) {
+          selectedIndex = suggestions.indexOf(currentSelection);
+        }
+        
+        // Enter the highlighted directory if available
+        if (suggestions.length > 0 && selectedIndex < suggestions.length) {
+          enterDirectory(suggestions[selectedIndex]);
+        }
       }
     } else if (event.key === 'Enter') {
       event.preventDefault();
-      if (showDropdown && suggestions.length > 0) {
-        selectSuggestion(suggestions[selectedIndex]);
-      } else if (inputValue.trim()) {
-        showDropdown = false;
-        onNavigate(inputValue.trim());
-        onEditEnd?.();
+      // Cancel pending debounce
+      if (fetchTimeout) {
+        clearTimeout(fetchTimeout);
+        fetchTimeout = null;
+      }
+      
+      if (inputValue.trim()) {
+        // Remember current selection before fetching
+        const currentSelection = suggestions.length > 0 ? suggestions[selectedIndex] : null;
+        
+        // Fetch fresh suggestions to ensure we have the latest
+        await fetchSuggestions(inputValue);
+        
+        // Try to restore the previous selection if it still exists
+        if (currentSelection && suggestions.includes(currentSelection)) {
+          selectedIndex = suggestions.indexOf(currentSelection);
+        }
+        
+        // Now select the highlighted suggestion if available
+        if (suggestions.length > 0 && selectedIndex < suggestions.length) {
+          selectSuggestion(suggestions[selectedIndex]);
+        } else {
+          // No matching suggestions, navigate to the typed path
+          showDropdown = false;
+          onNavigate(normalizeWslPath(inputValue.trim()));
+          onEditEnd?.();
+        }
       }
     } else if (event.key === 'Escape') {
       event.preventDefault();
@@ -247,9 +306,24 @@
     selectSuggestion(suggestion);
     isSelectingSuggestion = false;
   }
+
+  function handlePathBarClick(event: MouseEvent) {
+    // Only start edit mode if clicking on the path bar itself, not on segment buttons
+    if ((event.target as HTMLElement).closest('.segment')) return;
+    onEditStart?.();
+  }
+
+  function scrollSelectedIntoView() {
+    if (!suggestionsRef) return;
+    const selectedItem = suggestionsRef.children[selectedIndex] as HTMLElement;
+    if (selectedItem) {
+      selectedItem.scrollIntoView({ block: 'nearest' });
+    }
+  }
 </script>
 
-<nav class="path-bar" class:editing>
+<!-- svelte-ignore a11y_click_events_have_key_events a11y_no_noninteractive_element_interactions -->
+<nav class="path-bar" class:editing onclick={handlePathBarClick}>
   {#if editing}
     <div class="input-wrapper">
       <input
@@ -264,7 +338,7 @@
         autocomplete="off"
       />
       {#if showDropdown && suggestions.length > 0}
-        <ul class="suggestions">
+        <ul class="suggestions" bind:this={suggestionsRef}>
           {#each suggestions as suggestion, i}
             <li class:selected={i === selectedIndex}>
               <button
@@ -302,16 +376,18 @@
     display: flex;
     align-items: center;
     gap: 2px;
-    padding: 8px 12px;
+    padding: 5px 8px;
     background: var(--pathbar-bg);
     border-bottom: 1px solid var(--border-color);
     font-size: 13px;
     overflow-x: auto;
     white-space: nowrap;
+    cursor: text;
   }
 
   .path-bar.editing {
     overflow: visible;
+    cursor: default;
   }
 
   .input-wrapper {
@@ -400,6 +476,7 @@
 
   .segment.current {
     color: var(--fg);
-    font-weight: 500;
+    font-weight: 600;
+    background: var(--badge-bg);
   }
 </style>

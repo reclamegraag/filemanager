@@ -145,7 +145,7 @@
     align-items: center;
     gap: 8px;
     width: 100%;
-    padding: 6px 12px;
+    padding: 8px 12px;
     background: none;
     border: none;
     font: inherit;

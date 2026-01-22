@@ -132,16 +132,16 @@
 
   .header {
     display: grid;
-    grid-template-columns: 24px 1fr 60px 80px 120px;
+    grid-template-columns: 28px 1fr 64px 88px 130px;
     gap: 8px;
-    padding: 6px 8px;
+    padding: 8px 10px;
     background: var(--header-bg);
-    border-bottom: 1px solid var(--border-color);
+    border-bottom: 2px solid var(--border-color);
     font-size: 12px;
-    font-weight: 600;
+    font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.5px;
-    color: var(--muted-fg);
+    color: var(--fg);
   }
 
   .header button {

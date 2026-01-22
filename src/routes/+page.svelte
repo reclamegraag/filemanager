@@ -23,6 +23,7 @@
     createDirectory,
     renameFile,
     readDirectory,
+    openFile,
   } from '$lib/utils/ipc';
   import { matchKeyBinding, type KeyAction } from '$lib/utils/keybindings';
   import { undoStack } from '$lib/stores/undo';
@@ -198,6 +199,8 @@
         if (entry?.is_dir) {
           currentPaneStore.setPath(entry.path);
           currentSelection.clear();
+        } else if (entry) {
+          openFile(entry.path).catch(e => console.error('Failed to open file:', e));
         }
         break;
       }
@@ -235,6 +238,12 @@
 
       case 'edit_path':
         editingPath = $activePane;
+        // Clear selection to avoid confusion with dropdown
+        if ($activePane === 'left') {
+          leftSelection.clear();
+        } else {
+          rightSelection.clear();
+        }
         break;
 
       case 'add_bookmark':
@@ -469,9 +478,9 @@
 
     config.addBookmark({ name, path, shortcut });
 
-    // Save to config file
+    // Save to config file (bookmark already added to store above)
     const configToSave = {
-      bookmarks: [...$config.bookmarks, { name, path, shortcut }],
+      bookmarks: $config.bookmarks,
       left_pane: { path: $leftPane.path, sort_column: $leftPane.sortColumn, sort_ascending: $leftPane.sortDirection === 'asc' },
       right_pane: { path: $rightPane.path, sort_column: $rightPane.sortColumn, sort_ascending: $rightPane.sortDirection === 'asc' },
       window: { x: null, y: null, width: 1200, height: 800, maximized: false },
@@ -533,6 +542,7 @@
         onFocus={() => activePane.set('left')}
         onSort={(column) => leftPane.setSort(column)}
         onError={(error) => leftPane.setError(error)}
+        onEditPathStart={() => { editingPath = 'left'; leftSelection.clear(); }}
         onEditPathEnd={() => editingPath = null}
       />
 
@@ -549,6 +559,7 @@
         onFocus={() => activePane.set('right')}
         onSort={(column) => rightPane.setSort(column)}
         onError={(error) => rightPane.setError(error)}
+        onEditPathStart={() => { editingPath = 'right'; rightSelection.clear(); }}
         onEditPathEnd={() => editingPath = null}
       />
     </div>

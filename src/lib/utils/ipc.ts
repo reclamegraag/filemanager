@@ -136,7 +136,8 @@ export interface Config {
 
 // Filesystem commands
 export async function readDirectory(path: string): Promise<FileEntry[]> {
-  return invoke<FileEntry[]>('read_directory', { path });
+  const normalizedPath = normalizeWslPath(path);
+  return invoke<FileEntry[]>('read_directory', { path: normalizedPath });
 }
 
 export async function getParentDirectory(path: string): Promise<string | null> {
@@ -200,4 +201,34 @@ export async function loadConfig(): Promise<Config> {
 
 export async function saveConfig(config: Config): Promise<void> {
   return invoke<void>('save_config', { config });
+}
+
+// WSL path normalization - converts /wsl$/... to \\wsl$\...
+export function normalizeWslPath(path: string): string {
+  // Converteer /wsl$/distro/... naar \\wsl$\distro\...
+  if (path.startsWith('/wsl$/') || path.startsWith('/wsl$\\')) {
+    return '\\\\wsl$\\' + path.slice(6).replace(/\//g, '\\');
+  }
+  // Converteer //wsl$/... naar \\wsl$\...
+  if (path.startsWith('//wsl$/')) {
+    return '\\\\wsl$\\' + path.slice(7).replace(/\//g, '\\');
+  }
+  return path;
+}
+
+// Error parsing helper - converts AppError objects to readable strings
+export function parseError(e: unknown): string {
+  if (typeof e === 'string') return e;
+  if (e && typeof e === 'object') {
+    // AppError variants from Rust backend
+    const err = e as Record<string, unknown>;
+    if ('NotFound' in err) return `Path not found: ${err.NotFound}`;
+    if ('NotADirectory' in err) return `Not a directory: ${err.NotADirectory}`;
+    if ('Io' in err) return `IO error: ${err.Io}`;
+    if ('PermissionDenied' in err) return `Permission denied: ${err.PermissionDenied}`;
+    if ('Cancelled' in err) return 'Operation cancelled';
+    if ('InvalidOperation' in err) return `Invalid operation: ${err.InvalidOperation}`;
+    if ('message' in err) return String(err.message);
+  }
+  return 'Unknown error';
 }
