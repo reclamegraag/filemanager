@@ -1,4 +1,6 @@
 <script lang="ts">
+  import Fa from 'svelte-fa';
+  import { faArrowRight } from '@fortawesome/free-solid-svg-icons';
   import { renameFile } from '$lib/utils/ipc';
 
   interface Props {
@@ -91,7 +93,7 @@
           {#each preview.slice(0, 10) as item}
             <li>
               <span class="original">{item.original}</span>
-              <span class="arrow">→</span>
+              <span class="arrow"><Fa icon={faArrowRight} /></span>
               <span class="renamed">{item.renamed}</span>
             </li>
           {/each}
