@@ -1,4 +1,6 @@
 <script lang="ts">
+  import Fa from 'svelte-fa';
+  import { faCaretUp, faCaretDown } from '@fortawesome/free-solid-svg-icons';
   import type { FileEntry } from '$lib/utils/ipc';
   import type { SortColumn, SortDirection } from '$lib/stores/panes';
   import FileRow from './FileRow.svelte';
@@ -76,9 +78,8 @@
     return sorted;
   });
 
-  function getSortIndicator(column: SortColumn): string {
-    if (sortColumn !== column) return '';
-    return sortDirection === 'asc' ? ' ▲' : ' ▼';
+  function isSorted(column: SortColumn): boolean {
+    return sortColumn === column;
   }
 </script>
 
@@ -86,16 +87,16 @@
   <div class="header" role="row">
     <span class="icon"></span>
     <button class="name" onclick={() => onSort('name')}>
-      Name{getSortIndicator('name')}
+      Name {#if isSorted('name')}<Fa icon={sortDirection === 'asc' ? faCaretUp : faCaretDown} />{/if}
     </button>
     <button class="extension" onclick={() => onSort('extension')}>
-      Ext{getSortIndicator('extension')}
+      Ext {#if isSorted('extension')}<Fa icon={sortDirection === 'asc' ? faCaretUp : faCaretDown} />{/if}
     </button>
     <button class="size" onclick={() => onSort('size')}>
-      Size{getSortIndicator('size')}
+      Size {#if isSorted('size')}<Fa icon={sortDirection === 'asc' ? faCaretUp : faCaretDown} />{/if}
     </button>
     <button class="modified" onclick={() => onSort('modified')}>
-      Modified{getSortIndicator('modified')}
+      Modified {#if isSorted('modified')}<Fa icon={sortDirection === 'asc' ? faCaretUp : faCaretDown} />{/if}
     </button>
   </div>
 

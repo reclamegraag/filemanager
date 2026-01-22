@@ -1,4 +1,7 @@
 <script lang="ts">
+  import Fa from 'svelte-fa';
+  import { faTimes } from '@fortawesome/free-solid-svg-icons';
+
   interface Props {
     open: boolean;
     onClose: () => void;
@@ -45,7 +48,7 @@
     <div class="help" onclick={(e) => e.stopPropagation()} role="document">
       <header class="header">
         <h2>Keyboard Shortcuts</h2>
-        <button class="close" onclick={onClose}>×</button>
+        <button class="close" onclick={onClose}><Fa icon={faTimes} /></button>
       </header>
 
       <div class="content">

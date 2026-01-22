@@ -1,5 +1,7 @@
 <script lang="ts">
   import { tick } from 'svelte';
+  import Fa from 'svelte-fa';
+  import { faFolder } from '@fortawesome/free-solid-svg-icons';
   import { readDirectory, normalizeWslPath, type FileEntry } from '$lib/utils/ipc';
 
   interface Props {
@@ -345,9 +347,7 @@
                 onmousedown={handleSuggestionMouseDown}
                 onclick={() => handleSuggestionClick(suggestion)}
               >
-                <svg class="folder-icon" viewBox="0 0 20 20" fill="currentColor">
-                  <path d="M2 6a2 2 0 012-2h5l2 2h5a2 2 0 012 2v6a2 2 0 01-2 2H4a2 2 0 01-2-2V6z" />
-                </svg>
+                <span class="folder-icon"><Fa icon={faFolder} /></span>
                 {suggestion}
               </button>
             </li>
@@ -439,10 +439,14 @@
   }
 
   .folder-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
     width: 16px;
     height: 16px;
     flex-shrink: 0;
     color: var(--muted-fg);
+    font-size: 14px;
   }
 
   .suggestions li button:hover {
