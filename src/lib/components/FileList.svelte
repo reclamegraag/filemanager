@@ -16,6 +16,7 @@
     onSelect: (entry: FileEntry, event: MouseEvent) => void;
     onOpen: (entry: FileEntry) => void;
     onSort: (column: SortColumn) => void;
+    onContextMenu: (entry: FileEntry, event: MouseEvent) => void;
   }
 
   let {
@@ -29,6 +30,7 @@
     onSelect,
     onOpen,
     onSort,
+    onContextMenu,
   }: Props = $props();
 
   let filteredEntries = $derived(() => {
@@ -108,6 +110,7 @@
         focused={index === focusedIndex}
         {onSelect}
         {onOpen}
+        {onContextMenu}
       />
     {/each}
 

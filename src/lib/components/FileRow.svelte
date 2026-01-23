@@ -9,9 +9,10 @@
     focused: boolean;
     onSelect: (entry: FileEntry, event: MouseEvent) => void;
     onOpen: (entry: FileEntry) => void;
+    onContextMenu: (entry: FileEntry, event: MouseEvent) => void;
   }
 
-  let { entry, selected, focused, onSelect, onOpen }: Props = $props();
+  let { entry, selected, focused, onSelect, onOpen, onContextMenu }: Props = $props();
 
   let rowRef: HTMLDivElement;
 
@@ -48,6 +49,7 @@
   onclick={handleClick}
   ondblclick={handleDoubleClick}
   onkeydown={handleKeyDown}
+  oncontextmenu={(e) => onContextMenu(entry, e)}
 >
   <div class="icon"><FileIcon type={getFileIconType(entry)} /></div>
   <span class="name">{entry.name}</span>

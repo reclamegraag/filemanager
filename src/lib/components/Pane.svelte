@@ -21,6 +21,7 @@
     onError: (error: string) => void;
     onEditPathStart?: () => void;
     onEditPathEnd?: () => void;
+    onContextMenu: (entry: FileEntry, event: MouseEvent) => void;
   }
 
   let {
@@ -38,6 +39,7 @@
     onError,
     onEditPathStart,
     onEditPathEnd,
+    onContextMenu,
   }: Props = $props();
 
   let containerRef: HTMLDivElement;
@@ -109,6 +111,7 @@
       {onSelect}
       onOpen={handleOpen}
       {onSort}
+      {onContextMenu}
     />
   {/if}
 

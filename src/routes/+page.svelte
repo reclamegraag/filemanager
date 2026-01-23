@@ -8,7 +8,11 @@
   import CommandPalette from '$lib/components/CommandPalette.svelte';
   import HelpOverlay from '$lib/components/HelpOverlay.svelte';
   import BatchRenameDialog from '$lib/components/BatchRenameDialog.svelte';
+import ContextMenu from '$lib/components/ContextMenu.svelte';
+import { contextMenu } from '$lib/stores/contextMenu';
+import { getSelectionStore } from '$lib/stores/selection';
   import GlobalSearch from '$lib/components/GlobalSearch.svelte';
+  import InputDialog from '$lib/components/InputDialog.svelte';
   import { leftPane, rightPane, activePane, getSortedEntries } from '$lib/stores/panes';
   import { leftSelection, rightSelection } from '$lib/stores/selection';
   import { clipboard } from '$lib/stores/clipboard';
@@ -43,6 +47,13 @@
   let editingPath = $state<'left' | 'right' | null>(null);
   let batchRenameFiles = $state<{ path: string; name: string }[]>([]);
 
+  // Input dialog state
+  let inputDialogOpen = $state(false);
+  let inputDialogTitle = $state('');
+  let inputDialogLabel = $state('');
+  let inputDialogValue = $state('');
+  let inputDialogCallback = $state<(value: string) => void>(() => {});
+
   function openGlobalSearch() {
     searchOriginPane = get(activePane);
     globalSearchOpen = true;
@@ -60,6 +71,61 @@
     { id: 'hidden', label: 'Toggle hidden files', action: () => toggleHidden() },
     { id: 'help', label: 'Keyboard shortcuts', shortcut: 'F1', action: () => helpOpen = true },
   ];
+
+  async function handleCopyPath(pane: 'left' | 'right') {
+    const selection = pane === 'left' ? $leftSelection : $rightSelection;
+    const paths = Array.from(selection.selectedPaths).join('\n');
+    if (paths) {
+      try {
+        await navigator.clipboard.writeText(paths);
+      } catch (err) {
+        console.error('Failed to copy paths:', err);
+      }
+    }
+  }
+
+  function handleContextMenu(pane: 'left' | 'right', entry: FileEntry, event: MouseEvent) {
+    event.preventDefault();
+    
+    const selection = pane === 'left' ? leftSelection : rightSelection;
+    const selectionState = pane === 'left' ? $leftSelection : $rightSelection;
+
+    if (!selectionState.selectedPaths.has(entry.path)) {
+      handleSelect(pane, entry, { ...event, ctrlKey: false, shiftKey: false } as MouseEvent);
+    }
+
+    if (pane !== $activePane) {
+      activePane.set(pane);
+    }
+
+    const items = [
+      { label: 'Open', action: () => {
+        if (entry.is_dir) {
+          const paneStore = pane === 'left' ? leftPane : rightPane;
+          paneStore.setPath(entry.path);
+          selection.clear();
+        } else {
+          openFile(entry.path).catch(e => console.error(e));
+        }
+      }},
+      { divider: true },
+      { label: 'Copy to other pane', shortcut: 'F5', action: handleCopy },
+      { label: 'Move to other pane', shortcut: 'F6', action: handleMove },
+      { label: 'Rename', shortcut: 'F2', action: handleRename },
+      { label: 'Delete', shortcut: 'F8', action: handleDelete, danger: true },
+      { divider: true },
+      { label: 'Copy Path', action: () => handleCopyPath(pane) },
+      { label: 'Select All', shortcut: 'Ctrl+A', action: () => {
+          const paneStore = pane === 'left' ? leftPane : rightPane;
+          let paneState: any;
+          paneStore.subscribe(s => paneState = s)();
+          const visibleEntries = getSortedEntries(paneState);
+          selection.selectAll(visibleEntries.map(e => e.path));
+      }},
+    ];
+
+    contextMenu.show(event.clientX, event.clientY, items);
+  }
 
   function toggleHidden() {
     showHidden = !showHidden;
@@ -97,7 +163,7 @@
 
   function handleKeyDown(event: KeyboardEvent) {
     // Skip when overlays are open - let them handle their own keyboard events
-    if (commandPaletteOpen || helpOpen || batchRenameOpen || globalSearchOpen) {
+    if (commandPaletteOpen || helpOpen || batchRenameOpen || globalSearchOpen || inputDialogOpen) {
       return;
     }
 
@@ -356,20 +422,24 @@
 
   async function handleCreateDir() {
     const paneState = $activePane === 'left' ? $leftPane : $rightPane;
-    const name = prompt('New directory name:');
-    if (!name) return;
-
-    try {
-      await createDirectory(paneState.path, name);
-      undoStack.push({
-        type: 'create',
-        description: `Created directory: ${name}`,
-        data: { destPath: paneState.path },
-      });
-      await refreshPane($activePane);
-    } catch (e) {
-      console.error('Create directory error:', e);
-    }
+    
+    inputDialogTitle = 'Create Directory';
+    inputDialogLabel = 'Directory Name';
+    inputDialogValue = '';
+    inputDialogCallback = async (name: string) => {
+      try {
+        await createDirectory(paneState.path, name);
+        undoStack.push({
+          type: 'create',
+          description: `Created directory: ${name}`,
+          data: { destPath: paneState.path },
+        });
+        await refreshPane($activePane);
+      } catch (e) {
+        console.error('Create directory error:', e);
+      }
+    };
+    inputDialogOpen = true;
   }
 
   async function handleRename() {
@@ -381,20 +451,25 @@
 
     const oldPath = paths[0];
     const oldName = oldPath.split(/[/\\]/).pop() || '';
-    const newName = prompt('New name:', oldName);
-    if (!newName || newName === oldName) return;
-
-    try {
-      await renameFile(oldPath, newName);
-      undoStack.push({
-        type: 'rename',
-        description: `Renamed: ${oldName} → ${newName}`,
-        data: { paths: [oldPath], oldName, newName },
-      });
-      await refreshPane($activePane);
-    } catch (e) {
-      console.error('Rename error:', e);
-    }
+    
+    inputDialogTitle = 'Rename';
+    inputDialogLabel = 'New Name';
+    inputDialogValue = oldName;
+    inputDialogCallback = async (newName: string) => {
+      if (!newName || newName === oldName) return;
+      try {
+        await renameFile(oldPath, newName);
+        undoStack.push({
+          type: 'rename',
+          description: `Renamed: ${oldName} → ${newName}`,
+          data: { paths: [oldPath], oldName, newName },
+        });
+        await refreshPane($activePane);
+      } catch (e) {
+        console.error('Rename error:', e);
+      }
+    };
+    inputDialogOpen = true;
   }
 
   async function handleRefresh() {
@@ -590,6 +665,7 @@
         selectedPaths={$leftSelection.selectedPaths}
         focusedIndex={$leftSelection.focusedIndex}
         active={$activePane === 'left'}
+        onContextMenu={(entry, event) => handleContextMenu('left', entry, event)}
         {showHidden}
         editingPath={editingPath === 'left'}
         onPathChange={(path) => { leftPane.setPath(path); leftSelection.clear(); }}
@@ -607,6 +683,7 @@
         selectedPaths={$rightSelection.selectedPaths}
         focusedIndex={$rightSelection.focusedIndex}
         active={$activePane === 'right'}
+        onContextMenu={(entry, event) => handleContextMenu('right', entry, event)}
         {showHidden}
         editingPath={editingPath === 'right'}
         onPathChange={(path) => { rightPane.setPath(path); rightSelection.clear(); }}
@@ -619,7 +696,6 @@
         onEditPathEnd={() => editingPath = null}
       />
     </div>
-
     <StatusBar
       leftPath={$leftPane.path}
       rightPath={$rightPane.path}
@@ -652,6 +728,19 @@
     onClose={() => globalSearchOpen = false}
     onNavigate={handleSearchNavigate}
   />
+
+  <InputDialog
+    open={inputDialogOpen}
+    title={inputDialogTitle}
+    label={inputDialogLabel}
+    value={inputDialogValue}
+    onClose={() => inputDialogOpen = false}
+    onConfirm={(val) => {
+      inputDialogCallback(val);
+      inputDialogOpen = false;
+    }}
+  />
+  <ContextMenu />
 </div>
 
 <style>
