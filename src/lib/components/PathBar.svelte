@@ -231,21 +231,16 @@
         fetchTimeout = null;
       }
       
-      if (inputValue.trim()) {
-        // Remember current selection before fetching
-        const currentSelection = suggestions.length > 0 ? suggestions[selectedIndex] : null;
-        
-        // Fetch fresh suggestions
+      if (showDropdown && suggestions.length > 0 && selectedIndex < suggestions.length) {
+        // User is tabbing with a suggestion selected - enter that directory
+        enterDirectory(suggestions[selectedIndex]);
+      } else if (inputValue.trim()) {
+        // No dropdown or nothing selected, try to fetch suggestions first
         await fetchSuggestions(inputValue);
         
-        // Try to restore the previous selection if it still exists
-        if (currentSelection && suggestions.includes(currentSelection)) {
-          selectedIndex = suggestions.indexOf(currentSelection);
-        }
-        
-        // Enter the highlighted directory if available
-        if (suggestions.length > 0 && selectedIndex < suggestions.length) {
-          enterDirectory(suggestions[selectedIndex]);
+        // If we now have suggestions, enter the first one
+        if (suggestions.length > 0) {
+          enterDirectory(suggestions[0]);
         }
       }
     } else if (event.key === 'Enter') {

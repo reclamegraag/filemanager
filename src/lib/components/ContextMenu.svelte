@@ -44,8 +44,10 @@
     return { x, y };
   });
 
-  function handleAction(action: () => void) {
-    action();
+  function handleAction(action: (() => void) | undefined) {
+    if (action) {
+      action();
+    }
     contextMenu.hide();
   }
 </script>

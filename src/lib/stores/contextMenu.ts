@@ -1,10 +1,10 @@
 import { writable } from 'svelte/store';
 
 export interface ContextMenuItem {
-  label: string;
+  label?: string;
   icon?: any;
   shortcut?: string;
-  action: () => void;
+  action?: () => void;
   danger?: boolean;
   divider?: boolean;
 }
