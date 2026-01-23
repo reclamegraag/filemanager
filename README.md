@@ -1,142 +1,142 @@
 # File Manager
 
-Een snelle, moderne dual-pane bestandsbeheerder gebouwd met Tauri, SvelteKit en TypeScript.
+A fast, modern dual-pane file manager built with Tauri, SvelteKit and TypeScript.
 
 ---
 
-## Installatie
+## Installation
 
 ### Windows
 
-Download de laatste release van de [Releases](../../releases) pagina:
-- **MSI Installer:** `FileManager_x.x.x_x64_en-US.msi` — Aanbevolen voor de meeste gebruikers
-- **Portable:** `filemanager.exe` — Geen installatie nodig
+Download the latest release from the [Releases](https://github.com/reclamegraag/filemanager/releases) page:
+- **MSI Installer:** [FileManager_0.1.0_x64_en-US.msi](https://github.com/reclamegraag/filemanager/releases/download/v0.1.0/FileManager_0.1.0_x64_en-US.msi) — Recommended for most users
+- **Portable:** `filemanager.exe` — No installation required
 
-### Zelf bouwen
+### Build from Source
 
 ```bash
-# Vereisten: Node.js, Rust, Bun
+# Requirements: Node.js, Rust, Bun
 bun install
 bun run tauri build
 ```
 
-De build output staat in:
+Build output is located at:
 - `src-tauri/target/release/filemanager.exe`
 - `src-tauri/target/release/bundle/msi/FileManager_x.x.x_x64_en-US.msi`
 
 ---
 
-## Gebruikershandleiding
+## User Guide
 
-### Overzicht
+### Overview
 
-File Manager is een krachtige bestandsbeheerder met twee panelen, geïnspireerd door klassieke tools zoals Norton Commander en Total Commander. Navigeer efficiënt door je bestanden met het toetsenbord of de muis.
+File Manager is a powerful dual-pane file manager inspired by classic tools like Norton Commander and Total Commander. Navigate efficiently through your files using keyboard or mouse.
 
 ### Interface
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│  Zijbalk          │  Linker Paneel    │  Rechter Paneel    │
-│  ───────────────  │  ──────────────── │  ──────────────────│
-│  📁 Bladwijzers   │  📂 Documents     │  📂 Downloads      │
-│  📁 WSL Distros   │  📄 rapport.pdf   │  🖼️ foto.jpg       │
-│  🕐 Recent        │  📁 project       │  📦 backup.zip     │
-│                   │                   │                    │
+│  Sidebar            │  Left Pane         │  Right Pane      │
+│  ────────────────── │  ──────────────────│  ────────────────│
+│  📁 Bookmarks       │  📂 Documents      │  📂 Downloads    │
+│  📁 WSL Distros     │  📄 report.pdf     │  🖼️ photo.jpg    │
+│  🕐 Recent          │  📁 project        │  📦 backup.zip   │
+│                     │                    │                  │
 └─────────────────────────────────────────────────────────────┘
-│  Statusbalk: /home/user/Documents  •  3 items geselecteerd │
+│  Status bar: /home/user/Documents  •  3 items selected      │
 └─────────────────────────────────────────────────────────────┘
 ```
 
-### Sneltoetsen
+### Keyboard Shortcuts
 
-#### Navigatie
+#### Navigation
 
-| Toets | Actie |
-|-------|-------|
-| `↑` `↓` | Selectie omhoog/omlaag |
-| `Enter` | Map openen of bestand uitvoeren |
-| `Backspace` | Naar bovenliggende map |
-| `Tab` | Wisselen tussen panelen |
-| `Home` / `End` | Naar eerste/laatste item |
-| `Ctrl+1` t/m `Ctrl+9` | Spring naar bladwijzer |
+| Key | Action |
+|-----|--------|
+| `↑` `↓` | Move selection up/down |
+| `Enter` | Open folder or execute file |
+| `Backspace` | Go to parent folder |
+| `Tab` | Switch between panes |
+| `Home` / `End` | Jump to first/last item |
+| `Ctrl+1` to `Ctrl+9` | Jump to bookmark |
 
-#### Selectie
+#### Selection
 
-| Toets | Actie |
-|-------|-------|
-| `Spatie` | Item selecteren/deselecteren |
-| `Shift+↑/↓` | Selectie uitbreiden |
-| `Ctrl+A` | Alles selecteren |
-| Klik | Enkel item selecteren |
-| `Ctrl+Klik` | Item toevoegen aan selectie |
-| `Shift+Klik` | Bereik selecteren |
+| Key | Action |
+|-----|--------|
+| `Space` | Select/deselect item |
+| `Shift+↑/↓` | Extend selection |
+| `Ctrl+A` | Select all |
+| Click | Select single item |
+| `Ctrl+Click` | Add item to selection |
+| `Shift+Click` | Select range |
 
-#### Bestandsoperaties
+#### File Operations
 
-| Toets | Actie |
-|-------|-------|
-| `F2` | Hernoemen |
-| `F5` | Kopiëren naar ander paneel |
-| `F6` | Verplaatsen naar ander paneel |
-| `F7` | Nieuwe map aanmaken |
-| `F8` of `Delete` | Verwijderen |
-| `Ctrl+Z` | Ongedaan maken |
+| Key | Action |
+|-----|--------|
+| `F2` | Rename |
+| `F5` | Copy to other pane |
+| `F6` | Move to other pane |
+| `F7` | Create new folder |
+| `F8` or `Delete` | Delete |
+| `Ctrl+Z` | Undo |
 
 #### Interface
 
-| Toets | Actie |
-|-------|-------|
-| `Ctrl+P` | Commandopalet openen |
-| `Ctrl+L` | Pad invoeren |
-| `/` | Zoeken/filteren |
-| `Escape` | Filter wissen |
-| `F1` | Help weergeven |
+| Key | Action |
+|-----|--------|
+| `Ctrl+P` | Open command palette |
+| `Ctrl+L` | Enter path |
+| `/` | Search/filter |
+| `Escape` | Clear filter |
+| `F1` | Show help |
 
-### Functies
+### Features
 
-#### Dual-Pane Weergave
-Werk met twee mappen tegelijk. Ideaal voor het kopiëren of verplaatsen van bestanden tussen locaties.
+#### Dual-Pane View
+Work with two folders simultaneously. Ideal for copying or moving files between locations.
 
-#### Bladwijzers
-Sla veelgebruikte mappen op als bladwijzer. Toegankelijk via de zijbalk of met `Ctrl+1` t/m `Ctrl+9`.
+#### Bookmarks
+Save frequently used folders as bookmarks. Accessible via the sidebar or with `Ctrl+1` to `Ctrl+9`.
 
-#### WSL Integratie
-Directe toegang tot je Windows Subsystem for Linux distributies vanuit de zijbalk.
+#### WSL Integration
+Direct access to your Windows Subsystem for Linux distributions from the sidebar.
 
-#### Batch Hernoemen
-Selecteer meerdere bestanden en hernoem ze met patronen:
-- `{name}` — originele bestandsnaam
-- `{ext}` — extensie
-- `{n}` — volgnummer
-- `{date}` — huidige datum
+#### Batch Rename
+Select multiple files and rename them using patterns:
+- `{name}` — original filename
+- `{ext}` — extension
+- `{n}` — sequence number
+- `{date}` — current date
 
-*Voorbeeld:* `foto_{n}.{ext}` hernoemt naar `foto_1.jpg`, `foto_2.jpg`, etc.
+*Example:* `photo_{n}.{ext}` renames to `photo_1.jpg`, `photo_2.jpg`, etc.
 
-#### Sorteren
-Klik op kolomkoppen om te sorteren op:
-- Naam
-- Extensie
-- Grootte
-- Gewijzigd
+#### Sorting
+Click on column headers to sort by:
+- Name
+- Extension
+- Size
+- Modified
 
-#### Commandopalet
-Druk op `Ctrl+P` voor snelle toegang tot alle commando's. Typ om te zoeken.
+#### Command Palette
+Press `Ctrl+P` for quick access to all commands. Type to search.
 
 ### Tips
 
-- **Snel navigeren:** Typ `/` en begin te typen om direct te filteren op bestandsnaam.
-- **Efficiënt kopiëren:** Navigeer in het ene paneel naar de bron, in het andere naar de bestemming, selecteer bestanden en druk `F5`.
-- **Verborgen bestanden:** Toggle zichtbaarheid via het commandopalet.
+- **Quick navigation:** Type `/` and start typing to filter files by name instantly.
+- **Efficient copying:** Navigate to the source in one pane, to the destination in the other, select files and press `F5`.
+- **Hidden files:** Toggle visibility via the command palette.
 
 ---
 
 ## Development
 
-### Vereisten
+### Requirements
 
 - [Node.js](https://nodejs.org/) (v18+)
 - [Rust](https://rustup.rs/)
-- [Bun](https://bun.sh/) (of npm/pnpm)
+- [Bun](https://bun.sh/) (or npm/pnpm)
 
 ### Recommended IDE Setup
 
@@ -145,7 +145,7 @@ Druk op `Ctrl+P` voor snelle toegang tot alle commando's. Typ om te zoeken.
 ### Commands
 
 ```bash
-bun install          # Installeer dependencies
+bun install          # Install dependencies
 bun run dev          # Start development server
 bun run tauri dev    # Start Tauri in development mode
 bun run build        # Build frontend

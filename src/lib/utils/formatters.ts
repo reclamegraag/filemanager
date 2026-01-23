@@ -43,6 +43,47 @@ export function formatDate(timestamp: number | null): string {
   });
 }
 
+export function getFileIconType(entry: { is_dir: boolean; extension: string | null }): string {
+  if (entry.is_dir) return 'folder';
+
+  const ext = entry.extension?.toLowerCase() || '';
+
+  const typeMap: Record<string, string> = {
+    // Code
+    js: 'code', ts: 'code', jsx: 'code', tsx: 'code',
+    html: 'code', css: 'code', scss: 'code',
+    py: 'code', rs: 'code', go: 'code', java: 'code',
+    c: 'code', cpp: 'code', h: 'code',
+    
+    // Images
+    jpg: 'image', jpeg: 'image', png: 'image', gif: 'image',
+    svg: 'image', webp: 'image', ico: 'image', bmp: 'image',
+    
+    // Video
+    mp4: 'video', mkv: 'video', avi: 'video', mov: 'video', webm: 'video',
+    
+    // Audio
+    mp3: 'audio', wav: 'audio', flac: 'audio', ogg: 'audio', m4a: 'audio',
+    
+    // Archives
+    zip: 'archive', rar: 'archive', '7z': 'archive', tar: 'archive', 
+    gz: 'archive', xz: 'archive', bz2: 'archive',
+    
+    // Executables
+    exe: 'executable', msi: 'executable', bat: 'executable', 
+    sh: 'executable', cmd: 'executable',
+    
+    // Data
+    json: 'data', xml: 'data', yaml: 'data', yml: 'data', 
+    csv: 'data', sql: 'data', db: 'data',
+    
+    // Documents (default fallback is document icon, so only specific ones here if needed)
+    pdf: 'document', txt: 'document', md: 'document', doc: 'document', docx: 'document'
+  };
+
+  return typeMap[ext] || 'default';
+}
+
 export function getFileIcon(entry: { is_dir: boolean; extension: string | null }): string {
   if (entry.is_dir) return '📁';
 

@@ -1,7 +1,7 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import type { FileEntry } from '$lib/utils/ipc';
-  import { readDirectory, getParentDirectory, openFile } from '$lib/utils/ipc';
+  import { readDirectory, getParentDirectory, openFile, parseError } from '$lib/utils/ipc';
   import type { SortColumn, PaneState } from '$lib/stores/panes';
   import PathBar from './PathBar.svelte';
   import FileList from './FileList.svelte';
@@ -19,7 +19,9 @@
     onFocus: () => void;
     onSort: (column: SortColumn) => void;
     onError: (error: string) => void;
+    onEditPathStart?: () => void;
     onEditPathEnd?: () => void;
+    onContextMenu: (entry: FileEntry, event: MouseEvent) => void;
   }
 
   let {
@@ -35,17 +37,20 @@
     onFocus,
     onSort,
     onError,
+    onEditPathStart,
     onEditPathEnd,
+    onContextMenu,
   }: Props = $props();
 
   let containerRef: HTMLDivElement;
+  let previousPath = '';
 
   async function loadDirectory(path: string) {
     try {
       const entries = await readDirectory(path);
       onEntriesLoaded(entries);
-    } catch (e) {
-      onError(String(e));
+    } catch (e: unknown) {
+      onError(parseError(e));
     }
   }
 
@@ -60,8 +65,8 @@
     } else {
       try {
         await openFile(entry.path);
-      } catch (e) {
-        onError(String(e));
+      } catch (e: unknown) {
+        onError(parseError(e));
       }
     }
   }
@@ -73,7 +78,8 @@
   }
 
   $effect(() => {
-    if (pane.path) {
+    if (pane.path && pane.path !== previousPath) {
+      previousPath = pane.path;
       loadDirectory(pane.path);
     }
   });
@@ -87,7 +93,7 @@
   onclick={handlePaneClick}
   role="region"
 >
-  <PathBar path={pane.path} editing={editingPath} onNavigate={handleNavigate} onEditEnd={onEditPathEnd} />
+  <PathBar path={pane.path} editing={editingPath} onNavigate={handleNavigate} onEditStart={onEditPathStart} onEditEnd={onEditPathEnd} />
 
   {#if pane.loading}
     <div class="loading">Loading...</div>
@@ -96,8 +102,8 @@
   {:else}
     <FileList
       entries={pane.entries}
-      {selectedPaths}
-      {focusedIndex}
+      selectedPaths={editingPath ? new Set() : selectedPaths}
+      focusedIndex={editingPath ? -1 : focusedIndex}
       sortColumn={pane.sortColumn}
       sortDirection={pane.sortDirection}
       filter={pane.filter}
@@ -105,6 +111,7 @@
       {onSelect}
       onOpen={handleOpen}
       {onSort}
+      {onContextMenu}
     />
   {/if}
 

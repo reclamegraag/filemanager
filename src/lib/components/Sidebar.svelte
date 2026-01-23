@@ -1,4 +1,7 @@
 <script lang="ts">
+  import Fa from 'svelte-fa';
+  import { faStar, faFolder, faTimes } from '@fortawesome/free-solid-svg-icons';
+  import { faLinux } from '@fortawesome/free-brands-svg-icons';
   import type { Bookmark } from '$lib/stores/config';
   import type { WslDistro } from '$lib/utils/ipc';
 
@@ -25,13 +28,13 @@
       {#each bookmarks as bookmark}
         <li class="bookmark-item">
           <button class="item" onclick={() => onNavigate(bookmark.path)}>
-            <span class="icon">⭐</span>
+            <span class="icon"><Fa icon={faStar} /></span>
             <span class="label">{bookmark.name}</span>
             {#if bookmark.shortcut}
               <span class="shortcut">Ctrl+{bookmark.shortcut}</span>
             {/if}
           </button>
-          <button class="remove-btn" onclick={(e) => handleRemove(e, bookmark.path)} title="Remove bookmark">×</button>
+          <button class="remove-btn" onclick={(e) => handleRemove(e, bookmark.path)} title="Remove bookmark"><Fa icon={faTimes} /></button>
         </li>
       {/each}
     </ul>
@@ -44,7 +47,7 @@
         {#each wslDistros as distro}
           <li>
             <button class="item" onclick={() => onNavigate(distro.path)}>
-              <span class="icon">🐧</span>
+              <span class="icon"><Fa icon={faLinux} /></span>
               <span class="label">{distro.name}</span>
               {#if distro.is_default}
                 <span class="badge">Default</span>
@@ -63,7 +66,7 @@
         {#each recentPaths.slice(0, 5) as path}
           <li>
             <button class="item" onclick={() => onNavigate(path)}>
-              <span class="icon">📁</span>
+              <span class="icon"><Fa icon={faFolder} /></span>
               <span class="label">{path.split(/[/\\]/).pop()}</span>
             </button>
           </li>
@@ -145,7 +148,7 @@
     align-items: center;
     gap: 8px;
     width: 100%;
-    padding: 6px 12px;
+    padding: 8px 12px;
     background: none;
     border: none;
     font: inherit;

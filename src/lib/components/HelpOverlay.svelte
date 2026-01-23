@@ -1,10 +1,21 @@
 <script lang="ts">
+  import Fa from 'svelte-fa';
+  import { faTimes } from '@fortawesome/free-solid-svg-icons';
+
   interface Props {
     open: boolean;
     onClose: () => void;
   }
 
   let { open, onClose }: Props = $props();
+
+  function handleKeyDown(event: KeyboardEvent) {
+    if (open && event.key === 'Escape') {
+      event.preventDefault();
+      onClose();
+    }
+  }
+
 
   const shortcuts = [
     { category: 'Navigation', items: [
@@ -29,6 +40,7 @@
     ]},
     { category: 'UI', items: [
       { key: 'Ctrl+P', action: 'Command palette' },
+      { key: 'F3', action: 'Global search' },
       { key: 'Ctrl+L', action: 'Edit path' },
       { key: '/', action: 'Start filter' },
       { key: 'Escape', action: 'Clear filter' },
@@ -38,14 +50,17 @@
   ];
 </script>
 
+<svelte:window onkeydown={handleKeyDown} />
+
 {#if open}
   <!-- svelte-ignore a11y_click_events_have_key_events a11y_interactive_supports_focus -->
   <div class="overlay" onclick={onClose} role="dialog" tabindex="-1">
+
     <!-- svelte-ignore a11y_no_static_element_interactions -->
     <div class="help" onclick={(e) => e.stopPropagation()} role="document">
       <header class="header">
         <h2>Keyboard Shortcuts</h2>
-        <button class="close" onclick={onClose}>×</button>
+        <button class="close" onclick={onClose}><Fa icon={faTimes} /></button>
       </header>
 
       <div class="content">

@@ -1,4 +1,6 @@
 <script lang="ts">
+  import Fa from 'svelte-fa';
+  import { faCaretUp, faCaretDown } from '@fortawesome/free-solid-svg-icons';
   import type { FileEntry } from '$lib/utils/ipc';
   import type { SortColumn, SortDirection } from '$lib/stores/panes';
   import FileRow from './FileRow.svelte';
@@ -14,6 +16,7 @@
     onSelect: (entry: FileEntry, event: MouseEvent) => void;
     onOpen: (entry: FileEntry) => void;
     onSort: (column: SortColumn) => void;
+    onContextMenu: (entry: FileEntry, event: MouseEvent) => void;
   }
 
   let {
@@ -27,6 +30,7 @@
     onSelect,
     onOpen,
     onSort,
+    onContextMenu,
   }: Props = $props();
 
   let filteredEntries = $derived(() => {
@@ -76,9 +80,8 @@
     return sorted;
   });
 
-  function getSortIndicator(column: SortColumn): string {
-    if (sortColumn !== column) return '';
-    return sortDirection === 'asc' ? ' ▲' : ' ▼';
+  function isSorted(column: SortColumn): boolean {
+    return sortColumn === column;
   }
 </script>
 
@@ -86,16 +89,16 @@
   <div class="header" role="row">
     <span class="icon"></span>
     <button class="name" onclick={() => onSort('name')}>
-      Name{getSortIndicator('name')}
+      Name {#if isSorted('name')}<Fa icon={sortDirection === 'asc' ? faCaretUp : faCaretDown} />{/if}
     </button>
     <button class="extension" onclick={() => onSort('extension')}>
-      Ext{getSortIndicator('extension')}
+      Ext {#if isSorted('extension')}<Fa icon={sortDirection === 'asc' ? faCaretUp : faCaretDown} />{/if}
     </button>
     <button class="size" onclick={() => onSort('size')}>
-      Size{getSortIndicator('size')}
+      Size {#if isSorted('size')}<Fa icon={sortDirection === 'asc' ? faCaretUp : faCaretDown} />{/if}
     </button>
     <button class="modified" onclick={() => onSort('modified')}>
-      Modified{getSortIndicator('modified')}
+      Modified {#if isSorted('modified')}<Fa icon={sortDirection === 'asc' ? faCaretUp : faCaretDown} />{/if}
     </button>
   </div>
 
@@ -107,6 +110,7 @@
         focused={index === focusedIndex}
         {onSelect}
         {onOpen}
+        {onContextMenu}
       />
     {/each}
 
@@ -132,16 +136,16 @@
 
   .header {
     display: grid;
-    grid-template-columns: 24px 1fr 60px 80px 120px;
+    grid-template-columns: 28px 1fr 64px 88px 130px;
     gap: 8px;
-    padding: 6px 8px;
+    padding: 8px 10px;
     background: var(--header-bg);
-    border-bottom: 1px solid var(--border-color);
+    border-bottom: 2px solid var(--border-color);
     font-size: 12px;
-    font-weight: 600;
+    font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.5px;
-    color: var(--muted-fg);
+    color: var(--fg);
   }
 
   .header button {

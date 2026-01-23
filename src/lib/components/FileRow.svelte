@@ -1,6 +1,7 @@
 <script lang="ts">
   import type { FileEntry } from '$lib/utils/ipc';
-  import { formatFileSize, formatDate, getFileIcon } from '$lib/utils/formatters';
+  import FileIcon from './FileIcon.svelte';
+  import { formatFileSize, formatDate, getFileIconType } from '$lib/utils/formatters';
 
   interface Props {
     entry: FileEntry;
@@ -8,9 +9,10 @@
     focused: boolean;
     onSelect: (entry: FileEntry, event: MouseEvent) => void;
     onOpen: (entry: FileEntry) => void;
+    onContextMenu: (entry: FileEntry, event: MouseEvent) => void;
   }
 
-  let { entry, selected, focused, onSelect, onOpen }: Props = $props();
+  let { entry, selected, focused, onSelect, onOpen, onContextMenu }: Props = $props();
 
   let rowRef: HTMLDivElement;
 
@@ -47,8 +49,9 @@
   onclick={handleClick}
   ondblclick={handleDoubleClick}
   onkeydown={handleKeyDown}
+  oncontextmenu={(e) => onContextMenu(entry, e)}
 >
-  <span class="icon">{getFileIcon(entry)}</span>
+  <div class="icon"><FileIcon type={getFileIconType(entry)} /></div>
   <span class="name">{entry.name}</span>
   <span class="extension">{entry.extension || ''}</span>
   <span class="size">{entry.is_dir ? '' : formatFileSize(entry.size)}</span>
@@ -58,9 +61,9 @@
 <style>
   .file-row {
     display: grid;
-    grid-template-columns: 24px 1fr 60px 80px 120px;
+    grid-template-columns: 28px 1fr 64px 88px 130px;
     gap: 8px;
-    padding: 4px 8px;
+    padding: 6px 10px;
     align-items: center;
     cursor: pointer;
     border-radius: 4px;
@@ -76,6 +79,12 @@
   .file-row.selected {
     background: var(--selection-bg);
     color: var(--selection-fg);
+  }
+
+  .file-row.selected .extension,
+  .file-row.selected .size,
+  .file-row.selected .modified {
+    color: var(--selection-muted);
   }
 
   .file-row.selected:hover {

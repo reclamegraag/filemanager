@@ -1,16 +1,24 @@
 <script lang="ts">
   import { onMount } from 'svelte';
+  import { get } from 'svelte/store';
   import '../app.css';
   import Pane from '$lib/components/Pane.svelte';
+import TitleBar from '$lib/components/TitleBar.svelte';
   import Sidebar from '$lib/components/Sidebar.svelte';
   import StatusBar from '$lib/components/StatusBar.svelte';
   import CommandPalette from '$lib/components/CommandPalette.svelte';
   import HelpOverlay from '$lib/components/HelpOverlay.svelte';
   import BatchRenameDialog from '$lib/components/BatchRenameDialog.svelte';
+import ContextMenu from '$lib/components/ContextMenu.svelte';
+import { contextMenu } from '$lib/stores/contextMenu';
+import { getSelectionStore } from '$lib/stores/selection';
+  import GlobalSearch from '$lib/components/GlobalSearch.svelte';
+  import InputDialog from '$lib/components/InputDialog.svelte';
   import { leftPane, rightPane, activePane, getSortedEntries } from '$lib/stores/panes';
   import { leftSelection, rightSelection } from '$lib/stores/selection';
   import { clipboard } from '$lib/stores/clipboard';
   import { config } from '$lib/stores/config';
+  import { indexStore } from '$lib/stores/index';
   import type { FileEntry, WslDistro } from '$lib/utils/ipc';
   import {
     getHomeDirectory,
@@ -23,6 +31,7 @@
     createDirectory,
     renameFile,
     readDirectory,
+    openFile,
   } from '$lib/utils/ipc';
   import { matchKeyBinding, type KeyAction } from '$lib/utils/keybindings';
   import { undoStack } from '$lib/stores/undo';
@@ -32,12 +41,27 @@
   let commandPaletteOpen = $state(false);
   let helpOpen = $state(false);
   let batchRenameOpen = $state(false);
+  let globalSearchOpen = $state(false);
+  let searchOriginPane = $state<'left' | 'right'>('left');
   let showHidden = $state(false);
   let filterMode = $state(false);
   let editingPath = $state<'left' | 'right' | null>(null);
   let batchRenameFiles = $state<{ path: string; name: string }[]>([]);
 
+  // Input dialog state
+  let inputDialogOpen = $state(false);
+  let inputDialogTitle = $state('');
+  let inputDialogLabel = $state('');
+  let inputDialogValue = $state('');
+  let inputDialogCallback = $state<(value: string) => void>(() => {});
+
+  function openGlobalSearch() {
+    searchOriginPane = get(activePane);
+    globalSearchOpen = true;
+  }
+
   const commands = [
+    { id: 'search', label: 'Global search', shortcut: 'F3', action: openGlobalSearch },
     { id: 'copy', label: 'Copy to other pane', shortcut: 'F5', action: () => handleCopy() },
     { id: 'move', label: 'Move to other pane', shortcut: 'F6', action: () => handleMove() },
     { id: 'mkdir', label: 'Create directory', shortcut: 'F7', action: () => handleCreateDir() },
@@ -49,6 +73,61 @@
     { id: 'help', label: 'Keyboard shortcuts', shortcut: 'F1', action: () => helpOpen = true },
   ];
 
+  async function handleCopyPath(pane: 'left' | 'right') {
+    const selection = pane === 'left' ? $leftSelection : $rightSelection;
+    const paths = Array.from(selection.selectedPaths).join('\n');
+    if (paths) {
+      try {
+        await navigator.clipboard.writeText(paths);
+      } catch (err) {
+        console.error('Failed to copy paths:', err);
+      }
+    }
+  }
+
+  function handleContextMenu(pane: 'left' | 'right', entry: FileEntry, event: MouseEvent) {
+    event.preventDefault();
+    
+    const selection = pane === 'left' ? leftSelection : rightSelection;
+    const selectionState = pane === 'left' ? $leftSelection : $rightSelection;
+
+    if (!selectionState.selectedPaths.has(entry.path)) {
+      handleSelect(pane, entry, { ...event, ctrlKey: false, shiftKey: false } as MouseEvent);
+    }
+
+    if (pane !== $activePane) {
+      activePane.set(pane);
+    }
+
+    const items = [
+      { label: 'Open', action: () => {
+        if (entry.is_dir) {
+          const paneStore = pane === 'left' ? leftPane : rightPane;
+          paneStore.setPath(entry.path);
+          selection.clear();
+        } else {
+          openFile(entry.path).catch(e => console.error(e));
+        }
+      }},
+      { divider: true },
+      { label: 'Copy to other pane', shortcut: 'F5', action: handleCopy },
+      { label: 'Move to other pane', shortcut: 'F6', action: handleMove },
+      { label: 'Rename', shortcut: 'F2', action: handleRename },
+      { label: 'Delete', shortcut: 'F8', action: handleDelete, danger: true },
+      { divider: true },
+      { label: 'Copy Path', action: () => handleCopyPath(pane) },
+      { label: 'Select All', shortcut: 'Ctrl+A', action: () => {
+          const paneStore = pane === 'left' ? leftPane : rightPane;
+          let paneState: any;
+          paneStore.subscribe(s => paneState = s)();
+          const visibleEntries = getSortedEntries(paneState);
+          selection.selectAll(visibleEntries.map(e => e.path));
+      }},
+    ];
+
+    contextMenu.show(event.clientX, event.clientY, items);
+  }
+
   function toggleHidden() {
     showHidden = !showHidden;
     leftPane.setShowHidden(showHidden);
@@ -57,6 +136,9 @@
 
   onMount(async () => {
     try {
+      // Initialize indexer store
+      await indexStore.init();
+
       const home = await getHomeDirectory();
       if (home) {
         leftPane.setPath(home);
@@ -99,6 +181,17 @@
   });
 
   function handleKeyDown(event: KeyboardEvent) {
+    if (event.key === 'F1') {
+      helpOpen = !helpOpen;
+      event.preventDefault();
+      return;
+    }
+
+    // Skip when overlays are open - let them handle their own keyboard events
+    if (commandPaletteOpen || helpOpen || batchRenameOpen || globalSearchOpen || inputDialogOpen) {
+      return;
+    }
+
     // Skip when editing path - let the input handle keyboard events
     if (editingPath !== null) {
       return;
@@ -200,6 +293,10 @@
         commandPaletteOpen = true;
         break;
 
+      case 'global_search':
+        openGlobalSearch();
+        break;
+
       case 'clear_filter':
         currentPaneStore.setFilter('');
         filterMode = false;
@@ -216,6 +313,8 @@
         if (entry?.is_dir) {
           currentPaneStore.setPath(entry.path);
           currentSelection.clear();
+        } else if (entry) {
+          openFile(entry.path).catch(e => console.error('Failed to open file:', e));
         }
         break;
       }
@@ -253,6 +352,12 @@
 
       case 'edit_path':
         editingPath = $activePane;
+        // Clear selection to avoid confusion with dropdown
+        if ($activePane === 'left') {
+          leftSelection.clear();
+        } else {
+          rightSelection.clear();
+        }
         break;
 
       case 'add_bookmark':
@@ -342,20 +447,24 @@
 
   async function handleCreateDir() {
     const paneState = $activePane === 'left' ? $leftPane : $rightPane;
-    const name = prompt('New directory name:');
-    if (!name) return;
-
-    try {
-      await createDirectory(paneState.path, name);
-      undoStack.push({
-        type: 'create',
-        description: `Created directory: ${name}`,
-        data: { destPath: paneState.path },
-      });
-      await refreshPane($activePane);
-    } catch (e) {
-      console.error('Create directory error:', e);
-    }
+    
+    inputDialogTitle = 'Create Directory';
+    inputDialogLabel = 'Directory Name';
+    inputDialogValue = '';
+    inputDialogCallback = async (name: string) => {
+      try {
+        await createDirectory(paneState.path, name);
+        undoStack.push({
+          type: 'create',
+          description: `Created directory: ${name}`,
+          data: { destPath: paneState.path },
+        });
+        await refreshPane($activePane);
+      } catch (e) {
+        console.error('Create directory error:', e);
+      }
+    };
+    inputDialogOpen = true;
   }
 
   async function handleRename() {
@@ -367,20 +476,25 @@
 
     const oldPath = paths[0];
     const oldName = oldPath.split(/[/\\]/).pop() || '';
-    const newName = prompt('New name:', oldName);
-    if (!newName || newName === oldName) return;
-
-    try {
-      await renameFile(oldPath, newName);
-      undoStack.push({
-        type: 'rename',
-        description: `Renamed: ${oldName} → ${newName}`,
-        data: { paths: [oldPath], oldName, newName },
-      });
-      await refreshPane($activePane);
-    } catch (e) {
-      console.error('Rename error:', e);
-    }
+    
+    inputDialogTitle = 'Rename';
+    inputDialogLabel = 'New Name';
+    inputDialogValue = oldName;
+    inputDialogCallback = async (newName: string) => {
+      if (!newName || newName === oldName) return;
+      try {
+        await renameFile(oldPath, newName);
+        undoStack.push({
+          type: 'rename',
+          description: `Renamed: ${oldName} → ${newName}`,
+          data: { paths: [oldPath], oldName, newName },
+        });
+        await refreshPane($activePane);
+      } catch (e) {
+        console.error('Rename error:', e);
+      }
+    };
+    inputDialogOpen = true;
   }
 
   async function handleRefresh() {
@@ -488,13 +602,47 @@
     config.addBookmark({ name, path, shortcut });
   }
 
+  async function handleSearchNavigate(dirPath: string, fileName: string) {
+    // Use the pane that was active when search was opened
+    const paneStore = searchOriginPane === 'left' ? leftPane : rightPane;
+    const selection = searchOriginPane === 'left' ? leftSelection : rightSelection;
+
+    // Navigate to the directory and explicitly load entries
+    paneStore.setPath(dirPath);
+    selection.clear();
+
+    try {
+      const entries = await readDirectory(dirPath);
+      paneStore.setEntries(entries);
+    } catch (e) {
+      console.error('Failed to load directory:', e);
+      return;
+    }
+
+    // If a file name was provided, select it
+    if (fileName) {
+      let paneState: typeof $leftPane;
+      paneStore.subscribe(s => paneState = s)();
+
+      const visibleEntries = getSortedEntries(paneState!);
+      const index = visibleEntries.findIndex(e => e.name === fileName);
+
+      if (index >= 0) {
+        const entry = visibleEntries[index];
+        selection.select(entry.path);
+        selection.setFocusedIndex(index);
+      }
+    }
+  }
+
   async function handleRemoveBookmark(path: string) {
     config.removeBookmark(path);
   }
 </script>
 
-<svelte:window onkeydown={handleKeyDown} />
+<svelte:window onkeydown={handleKeyDown} oncontextmenu={(e) => e.preventDefault()} />
 
+<TitleBar />
 <div class="app">
   <Sidebar
     bookmarks={$config.bookmarks}
@@ -511,6 +659,7 @@
         selectedPaths={$leftSelection.selectedPaths}
         focusedIndex={$leftSelection.focusedIndex}
         active={$activePane === 'left'}
+        onContextMenu={(entry, event) => handleContextMenu('left', entry, event)}
         {showHidden}
         editingPath={editingPath === 'left'}
         onPathChange={(path) => { leftPane.setPath(path); leftSelection.clear(); }}
@@ -519,6 +668,7 @@
         onFocus={() => activePane.set('left')}
         onSort={(column) => leftPane.setSort(column)}
         onError={(error) => leftPane.setError(error)}
+        onEditPathStart={() => { editingPath = 'left'; leftSelection.clear(); }}
         onEditPathEnd={() => editingPath = null}
       />
 
@@ -527,6 +677,7 @@
         selectedPaths={$rightSelection.selectedPaths}
         focusedIndex={$rightSelection.focusedIndex}
         active={$activePane === 'right'}
+        onContextMenu={(entry, event) => handleContextMenu('right', entry, event)}
         {showHidden}
         editingPath={editingPath === 'right'}
         onPathChange={(path) => { rightPane.setPath(path); rightSelection.clear(); }}
@@ -535,10 +686,10 @@
         onFocus={() => activePane.set('right')}
         onSort={(column) => rightPane.setSort(column)}
         onError={(error) => rightPane.setError(error)}
+        onEditPathStart={() => { editingPath = 'right'; rightSelection.clear(); }}
         onEditPathEnd={() => editingPath = null}
       />
     </div>
-
     <StatusBar
       leftPath={$leftPane.path}
       rightPath={$rightPane.path}
@@ -565,12 +716,31 @@
     onClose={() => batchRenameOpen = false}
     onComplete={() => refreshPane($activePane)}
   />
+
+  <GlobalSearch
+    open={globalSearchOpen}
+    onClose={() => globalSearchOpen = false}
+    onNavigate={handleSearchNavigate}
+  />
+
+  <InputDialog
+    open={inputDialogOpen}
+    title={inputDialogTitle}
+    label={inputDialogLabel}
+    value={inputDialogValue}
+    onClose={() => inputDialogOpen = false}
+    onConfirm={(val) => {
+      inputDialogCallback(val);
+      inputDialogOpen = false;
+    }}
+  />
+  <ContextMenu />
 </div>
 
 <style>
   .app {
     display: flex;
-    height: 100vh;
+    height: calc(100vh - 32px);
     overflow: hidden;
   }
 

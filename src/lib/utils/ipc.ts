@@ -66,6 +66,47 @@ async function invoke<T>(cmd: string, args?: any): Promise<T> {
         setTimeout(() => resolve({} as T), 100);
       });
 
+    case 'search_files':
+      return new Promise(resolve => {
+        const query = (args?.query || '').toLowerCase();
+        const results = mockFiles.filter(f => f.name.toLowerCase().includes(query));
+        setTimeout(() => resolve(results as T), 200);
+      });
+
+    case 'get_available_drives':
+      return new Promise(resolve => {
+        const drives = [
+          { name: 'C: Drive', path: 'C:\\' },
+          { name: 'D: Drive', path: 'D:\\' },
+        ];
+        setTimeout(() => resolve(drives as T), 100);
+      });
+
+    case 'start_indexing':
+    case 'stop_indexing':
+    case 'clear_index_cache':
+      console.log(`Mock index operation: ${cmd}`, args);
+      return new Promise(resolve => {
+        setTimeout(() => resolve(undefined as T), 100);
+      });
+
+    case 'search_index':
+      return new Promise(resolve => {
+        const query = (args?.query || '').toLowerCase();
+        const results = mockFiles.filter(f => f.name.toLowerCase().includes(query));
+        setTimeout(() => resolve(results as T), 100);
+      });
+
+    case 'get_index_status':
+      return new Promise(resolve => {
+        const status = {
+          status: 'idle',
+          indexed_count: mockFiles.length,
+          current_path: null
+        };
+        setTimeout(() => resolve(status as T), 100);
+      });
+
     default:
       console.log(`Unknown command: ${cmd}`, args);
       return new Promise(resolve => {
@@ -107,6 +148,11 @@ export interface UndoToken {
   backup_paths: string[];
 }
 
+export interface DriveInfo {
+  name: string;
+  path: string;
+}
+
 export interface Config {
   bookmarks: Array<{
     name: string;
@@ -136,7 +182,8 @@ export interface Config {
 
 // Filesystem commands
 export async function readDirectory(path: string): Promise<FileEntry[]> {
-  return invoke<FileEntry[]>('read_directory', { path });
+  const normalizedPath = normalizeWslPath(path);
+  return invoke<FileEntry[]>('read_directory', { path: normalizedPath });
 }
 
 export async function getParentDirectory(path: string): Promise<string | null> {
@@ -200,4 +247,68 @@ export async function loadConfig(): Promise<Config> {
 
 export async function saveConfig(config: Config): Promise<void> {
   return invoke<void>('save_config', { config });
+}
+
+// WSL path normalization - converts /wsl$/... to \\wsl$\...
+export function normalizeWslPath(path: string): string {
+  // Converteer /wsl$/distro/... naar \\wsl$\distro\...
+  if (path.startsWith('/wsl$/') || path.startsWith('/wsl$\\')) {
+    return '\\\\wsl$\\' + path.slice(6).replace(/\//g, '\\');
+  }
+  // Converteer //wsl$/... naar \\wsl$\...
+  if (path.startsWith('//wsl$/')) {
+    return '\\\\wsl$\\' + path.slice(7).replace(/\//g, '\\');
+  }
+  return path;
+}
+
+// Search commands
+export async function searchFiles(
+  query: string,
+  rootPaths: string[],
+  limit?: number
+): Promise<FileEntry[]> {
+  return invoke<FileEntry[]>('search_files', {
+    query,
+    root_paths: rootPaths,
+    limit,
+  });
+}
+
+export async function getAvailableDrives(): Promise<DriveInfo[]> {
+  return invoke<DriveInfo[]>('get_available_drives');
+}
+
+// Indexer commands
+export async function startIndexing(roots: string[]): Promise<void> {
+  return invoke<void>('start_indexing', { roots });
+}
+
+export async function stopIndexing(): Promise<void> {
+  return invoke<void>('stop_indexing');
+}
+
+export async function clearIndexCache(): Promise<void> {
+  return invoke<void>('clear_index_cache');
+}
+
+export async function searchIndex(query: string, limit?: number): Promise<FileEntry[]> {
+  return invoke<FileEntry[]>('search_index', { query, limit });
+}
+
+// Error parsing helper - converts AppError objects to readable strings
+export function parseError(e: unknown): string {
+  if (typeof e === 'string') return e;
+  if (e && typeof e === 'object') {
+    // AppError variants from Rust backend
+    const err = e as Record<string, unknown>;
+    if ('NotFound' in err) return `Path not found: ${err.NotFound}`;
+    if ('NotADirectory' in err) return `Not a directory: ${err.NotADirectory}`;
+    if ('Io' in err) return `IO error: ${err.Io}`;
+    if ('PermissionDenied' in err) return `Permission denied: ${err.PermissionDenied}`;
+    if ('Cancelled' in err) return 'Operation cancelled';
+    if ('InvalidOperation' in err) return `Invalid operation: ${err.InvalidOperation}`;
+    if ('message' in err) return String(err.message);
+  }
+  return 'Unknown error';
 }

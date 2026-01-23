@@ -6,7 +6,7 @@
   /* Base colors */
   --bg: #0d0d0f;
   --fg: #e8e6e3;
-  --muted-fg: #6b6b6b;
+  --muted-fg: #8a8a8a;
 
   /* Surfaces */
   --pane-bg: #121214;
@@ -17,9 +17,22 @@
   --palette-bg: #1a1a1e;
 
   /* Interactive */
-  --hover-bg: rgba(255, 255, 255, 0.04);
+  --hover-bg: rgba(255, 255, 255, 0.08);
   --selection-bg: #2563eb;
   --selection-fg: #ffffff;
+  --selection-muted: rgba(255, 255, 255, 0.8);
+
+  /* Icon Colors */
+  --icon-folder: #f5a623;
+  --icon-code: #61dafb;
+  --icon-document: #9ca3af;
+  --icon-image: #e879f9;
+  --icon-video: #f472b6;
+  --icon-audio: #22d3ee;
+  --icon-archive: #a78bfa;
+  --icon-executable: #ef4444;
+  --icon-data: #fbbf24;
+  --icon-default: #6b7280;
 
   /* Borders & Focus */
   --border-color: #2a2a2e;
