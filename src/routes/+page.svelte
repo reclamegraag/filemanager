@@ -3,6 +3,7 @@
   import { get } from 'svelte/store';
   import '../app.css';
   import Pane from '$lib/components/Pane.svelte';
+import TitleBar from '$lib/components/TitleBar.svelte';
   import Sidebar from '$lib/components/Sidebar.svelte';
   import StatusBar from '$lib/components/StatusBar.svelte';
   import CommandPalette from '$lib/components/CommandPalette.svelte';
@@ -655,6 +656,7 @@ import { getSelectionStore } from '$lib/stores/selection';
 
 <svelte:window onkeydown={handleKeyDown} oncontextmenu={(e) => e.preventDefault()} />
 
+<TitleBar />
 <div class="app">
   <Sidebar
     bookmarks={$config.bookmarks}
@@ -752,7 +754,7 @@ import { getSelectionStore } from '$lib/stores/selection';
 <style>
   .app {
     display: flex;
-    height: 100vh;
+    height: calc(100vh - 32px);
     overflow: hidden;
   }
 
