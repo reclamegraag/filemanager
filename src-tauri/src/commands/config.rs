@@ -1,68 +1,82 @@
 use crate::fs::{AppError, Config};
 use std::path::PathBuf;
 
+fn get_config_dir() -> PathBuf {
+    dirs::data_dir()
+        .unwrap_or_else(|| PathBuf::from("."))
+        .join("FileManager")
+}
+
 fn config_path() -> PathBuf {
-    let mut config_dir = dirs::data_dir().unwrap_or_else(|| PathBuf::from("."));
-    config_dir.push("File Manager");
+    let config_dir = get_config_dir();
     if let Err(e) = std::fs::create_dir_all(&config_dir) {
-        eprintln!("Failed to create config dir: {:?}", e);
+        log_debug(&format!("Failed to create config dir: {:?}", e));
     }
     config_dir.join("config.json")
+}
+
+fn log_debug(msg: &str) {
+    let log_path = get_config_dir().join("debug.log");
+    let timestamp = std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .map(|d| d.as_secs())
+        .unwrap_or(0);
+    let line = format!("[{}] {}\n", timestamp, msg);
+    let _ = std::fs::OpenOptions::new()
+        .create(true)
+        .append(true)
+        .open(&log_path)
+        .and_then(|mut f| std::io::Write::write_all(&mut f, line.as_bytes()));
 }
 
 #[tauri::command]
 pub fn load_config() -> Config {
     let path = config_path();
-    println!("[Config] Loading from: {:?}", path);
+    log_debug(&format!("Loading from: {:?}", path));
 
     if path.exists() {
         match std::fs::read_to_string(&path) {
             Ok(content) => {
-                println!("[Config] File content length: {} bytes", content.len());
+                log_debug(&format!("File content length: {} bytes", content.len()));
                 match serde_json::from_str::<Config>(&content) {
                     Ok(config) => {
-                        println!("[Config] Loaded {} bookmarks", config.bookmarks.len());
-                        for b in &config.bookmarks {
-                            println!("[Config] - Bookmark: {} -> {}", b.name, b.path);
-                        }
+                        log_debug(&format!("Loaded {} bookmarks", config.bookmarks.len()));
                         config
                     }
                     Err(e) => {
-                        eprintln!("[Config] Parse error: {:?}", e);
+                        log_debug(&format!("Parse error: {:?}", e));
                         Config::default()
                     }
                 }
             }
             Err(e) => {
-                eprintln!("[Config] Read error: {:?}", e);
+                log_debug(&format!("Read error: {:?}", e));
                 Config::default()
             }
         }
     } else {
-        println!("[Config] File does not exist, using defaults");
+        log_debug("File does not exist, using defaults");
         Config::default()
     }
 }
 
 #[tauri::command]
 pub fn save_config(config: Config) -> Result<(), AppError> {
+    log_debug("save_config called");
     let path = config_path();
-    println!("[Config] Saving to: {:?}", path);
-    println!("[Config] Saving {} bookmarks", config.bookmarks.len());
-    for b in &config.bookmarks {
-        println!("[Config] - Bookmark: {} -> {}", b.name, b.path);
-    }
+    log_debug(&format!("Saving to: {:?}", path));
+    log_debug(&format!("Saving {} bookmarks", config.bookmarks.len()));
 
     let json = serde_json::to_string_pretty(&config).map_err(|e| {
-        eprintln!("[Config] Serialize error: {:?}", e);
+        log_debug(&format!("Serialize error: {:?}", e));
         AppError::Io(e.to_string())
     })?;
 
     std::fs::write(&path, &json).map_err(|e| {
-        eprintln!("[Config] Write error: {:?}", e);
+        log_debug(&format!("Write error: {:?}", e));
         AppError::Io(e.to_string())
     })?;
 
-    println!("[Config] Saved successfully ({} bytes)", json.len());
+    log_debug(&format!("Saved successfully ({} bytes)", json.len()));
     Ok(())
 }
