@@ -9,6 +9,14 @@
 
   let { open, onClose }: Props = $props();
 
+  function handleKeyDown(event: KeyboardEvent) {
+    if (open && event.key === 'Escape') {
+      event.preventDefault();
+      onClose();
+    }
+  }
+
+
   const shortcuts = [
     { category: 'Navigation', items: [
       { key: '↑/↓', action: 'Move selection up/down' },
@@ -42,9 +50,12 @@
   ];
 </script>
 
+<svelte:window onkeydown={handleKeyDown} />
+
 {#if open}
   <!-- svelte-ignore a11y_click_events_have_key_events a11y_interactive_supports_focus -->
   <div class="overlay" onclick={onClose} role="dialog" tabindex="-1">
+
     <!-- svelte-ignore a11y_no_static_element_interactions -->
     <div class="help" onclick={(e) => e.stopPropagation()} role="document">
       <header class="header">

@@ -162,6 +162,12 @@ import { getSelectionStore } from '$lib/stores/selection';
   });
 
   function handleKeyDown(event: KeyboardEvent) {
+    if (event.key === 'F1') {
+      helpOpen = !helpOpen;
+      event.preventDefault();
+      return;
+    }
+
     // Skip when overlays are open - let them handle their own keyboard events
     if (commandPaletteOpen || helpOpen || batchRenameOpen || globalSearchOpen || inputDialogOpen) {
       return;
@@ -647,7 +653,7 @@ import { getSelectionStore } from '$lib/stores/selection';
   }
 </script>
 
-<svelte:window onkeydown={handleKeyDown} />
+<svelte:window onkeydown={handleKeyDown} oncontextmenu={(e) => e.preventDefault()} />
 
 <div class="app">
   <Sidebar
