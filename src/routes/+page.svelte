@@ -160,7 +160,6 @@ import { getSelectionStore } from '$lib/stores/selection';
 
       // Set up auto-save callback
       config.setSaveCallback(async (configState) => {
-        console.log('Main component: saveCallback called with configState:', configState);
         const configToSave = {
           bookmarks: configState.bookmarks,
           left_pane: { path: $leftPane.path, sort_column: $leftPane.sortColumn, sort_ascending: $leftPane.sortDirection === 'asc' },
@@ -170,10 +169,8 @@ import { getSelectionStore } from '$lib/stores/selection';
           recent_paths: configState.recentPaths,
         };
 
-        console.log('Main component: saving config:', configToSave);
         try {
           await saveConfig(configToSave);
-          console.log('Main component: config saved successfully');
         } catch (e) {
           console.error('Failed to save config:', e);
         }
