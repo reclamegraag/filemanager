@@ -1,5 +1,6 @@
 <script lang="ts">
   import { onMount } from 'svelte';
+  import { get } from 'svelte/store';
   import '../app.css';
   import Pane from '$lib/components/Pane.svelte';
   import Sidebar from '$lib/components/Sidebar.svelte';
@@ -36,13 +37,19 @@
   let helpOpen = $state(false);
   let batchRenameOpen = $state(false);
   let globalSearchOpen = $state(false);
+  let searchOriginPane = $state<'left' | 'right'>('left');
   let showHidden = $state(false);
   let filterMode = $state(false);
   let editingPath = $state<'left' | 'right' | null>(null);
   let batchRenameFiles = $state<{ path: string; name: string }[]>([]);
 
+  function openGlobalSearch() {
+    searchOriginPane = get(activePane);
+    globalSearchOpen = true;
+  }
+
   const commands = [
-    { id: 'search', label: 'Global search', shortcut: 'F3', action: () => globalSearchOpen = true },
+    { id: 'search', label: 'Global search', shortcut: 'F3', action: openGlobalSearch },
     { id: 'copy', label: 'Copy to other pane', shortcut: 'F5', action: () => handleCopy() },
     { id: 'move', label: 'Move to other pane', shortcut: 'F6', action: () => handleMove() },
     { id: 'mkdir', label: 'Create directory', shortcut: 'F7', action: () => handleCreateDir() },
@@ -196,7 +203,7 @@
         break;
 
       case 'global_search':
-        globalSearchOpen = true;
+        openGlobalSearch();
         break;
 
       case 'clear_filter':
@@ -512,29 +519,35 @@
   }
 
   async function handleSearchNavigate(dirPath: string, fileName: string) {
-    const paneStore = $activePane === 'left' ? leftPane : rightPane;
-    const selection = $activePane === 'left' ? leftSelection : rightSelection;
+    // Use the pane that was active when search was opened
+    const paneStore = searchOriginPane === 'left' ? leftPane : rightPane;
+    const selection = searchOriginPane === 'left' ? leftSelection : rightSelection;
 
-    // Navigate to the directory
+    // Navigate to the directory and explicitly load entries
     paneStore.setPath(dirPath);
     selection.clear();
 
-    // If a file name was provided, select it after the directory loads
+    try {
+      const entries = await readDirectory(dirPath);
+      paneStore.setEntries(entries);
+    } catch (e) {
+      console.error('Failed to load directory:', e);
+      return;
+    }
+
+    // If a file name was provided, select it
     if (fileName) {
-      // Wait for entries to load, then select the file
-      setTimeout(async () => {
-        let paneState: typeof $leftPane;
-        paneStore.subscribe(s => paneState = s)();
+      let paneState: typeof $leftPane;
+      paneStore.subscribe(s => paneState = s)();
 
-        const visibleEntries = getSortedEntries(paneState!);
-        const index = visibleEntries.findIndex(e => e.name === fileName);
+      const visibleEntries = getSortedEntries(paneState!);
+      const index = visibleEntries.findIndex(e => e.name === fileName);
 
-        if (index >= 0) {
-          const entry = visibleEntries[index];
-          selection.select(entry.path);
-          selection.setFocusedIndex(index);
-        }
-      }, 300);
+      if (index >= 0) {
+        const entry = visibleEntries[index];
+        selection.select(entry.path);
+        selection.setFocusedIndex(index);
+      }
     }
   }
 

@@ -41,6 +41,7 @@
   }: Props = $props();
 
   let containerRef: HTMLDivElement;
+  let previousPath = '';
 
   async function loadDirectory(path: string) {
     try {
@@ -75,7 +76,8 @@
   }
 
   $effect(() => {
-    if (pane.path) {
+    if (pane.path && pane.path !== previousPath) {
+      previousPath = pane.path;
       loadDirectory(pane.path);
     }
   });

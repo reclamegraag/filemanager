@@ -74,6 +74,12 @@
   }
 
   function handleKeyDown(event: KeyboardEvent) {
+    // Stop propagation to prevent +page.svelte from handling these events
+    // This is critical because onClose() sets globalSearchOpen=false before
+    // the event finishes bubbling, which would cause the page handler to
+    // process the keypress as a normal pane navigation
+    event.stopPropagation();
+
     if (scopeOpen && event.key === 'Tab') {
       event.preventDefault();
       scopeOpen = false;
@@ -123,12 +129,35 @@
   }
 
   function selectResult(entry: FileEntry) {
-    const dirPath = entry.is_dir
-      ? entry.path
-      : entry.path.substring(0, entry.path.lastIndexOf('\\') || entry.path.lastIndexOf('/'));
-    const fileName = entry.is_dir ? '' : entry.name;
+    // Find the last separator to handle both Windows and Unix paths correctly
+    const lastBackslash = entry.path.lastIndexOf('\\');
+    const lastSlash = entry.path.lastIndexOf('/');
+    const lastSeparator = Math.max(lastBackslash, lastSlash);
 
-    onNavigate(dirPath || entry.path, fileName);
+    let dirPath: string;
+    let fileName: string;
+
+    if (entry.is_dir) {
+      // If it's a directory, open the directory itself
+      dirPath = entry.path;
+      fileName = '';
+    } else {
+      // If it's a file, open parent directory and select the file
+      if (lastSeparator === -1) {
+        // No separator found (unlikely for absolute paths), fallback
+        dirPath = entry.path;
+        fileName = '';
+      } else {
+        dirPath = entry.path.substring(0, lastSeparator);
+        // Handle root paths like "C:\" correctly
+        if (dirPath.endsWith(':')) {
+          dirPath += '\\';
+        }
+        fileName = entry.path.substring(lastSeparator + 1);
+      }
+    }
+
+    onNavigate(dirPath, fileName);
     onClose();
   }
 
@@ -248,15 +277,29 @@
           </li>
         {/each}
 
-        {#if results.length === 0 && query.trim() && !loading}
+        {#if loading}
+          <li class="empty-state">
+            <Fa icon={faSpinner} size="2x" spin class="empty-icon" />
+            <p>Searching...</p>
+          </li>
+        {:else if results.length === 0 && query.trim()}
           <li class="empty">No files found</li>
         {/if}
 
-        {#if results.length === 0 && !query.trim()}
+        {#if results.length === 0 && !query.trim() && !loading}
           <li class="empty-state">
-            <Fa icon={faSearch} size="3x" class="empty-icon" />
-            <p>Type to search instantly</p>
-            <span class="index-info">Index contains {indexStatus.indexed_count} files</span>
+            {#if indexStatus.status === 'scanning'}
+              <Fa icon={faSync} size="2x" spin class="empty-icon scanning" />
+              <p>Indexing files...</p>
+              <span class="index-info">{indexStatus.indexed_count.toLocaleString()} files indexed</span>
+              {#if indexStatus.current_path}
+                <span class="current-scan-path">{formatPath(indexStatus.current_path)}</span>
+              {/if}
+            {:else}
+              <Fa icon={faSearch} size="3x" class="empty-icon" />
+              <p>Type to search instantly</p>
+              <span class="index-info">Index contains {indexStatus.indexed_count.toLocaleString()} files</span>
+            {/if}
           </li>
         {/if}
       </ul>
@@ -534,9 +577,24 @@
     margin-bottom: 8px;
   }
 
+  .empty-state :global(.empty-icon.scanning) {
+    opacity: 0.8;
+    color: var(--accent-fg);
+  }
+
   .index-info {
     font-size: 12px;
     opacity: 0.5;
+  }
+
+  .current-scan-path {
+    font-size: 11px;
+    font-family: var(--font-mono);
+    opacity: 0.4;
+    max-width: 400px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 
   .footer {
