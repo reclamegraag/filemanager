@@ -283,7 +283,16 @@
             <p>Searching...</p>
           </li>
         {:else if results.length === 0 && query.trim()}
-          <li class="empty">No files found</li>
+          {#if indexStatus.status === 'scanning' || indexStatus.indexed_count === 0}
+            <li class="empty-state">
+              <Fa icon={faSync} size="2x" spin class="empty-icon scanning" />
+              <p>Building index...</p>
+              <span class="index-info">{indexStatus.indexed_count.toLocaleString()} files indexed</span>
+              <span class="index-hint">Results will appear as files are indexed</span>
+            </li>
+          {:else}
+            <li class="empty">No files found</li>
+          {/if}
         {/if}
 
         {#if results.length === 0 && !query.trim() && !loading}
@@ -595,6 +604,12 @@
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+  }
+
+  .index-hint {
+    font-size: 11px;
+    opacity: 0.4;
+    font-style: italic;
   }
 
   .footer {
