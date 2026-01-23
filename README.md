@@ -8,8 +8,8 @@ A fast, modern dual-pane file manager built with Tauri, SvelteKit and TypeScript
 
 ### Windows
 
-Download the latest release from the [Releases](../../releases) page:
-- **MSI Installer:** `FileManager_x.x.x_x64_en-US.msi` — Recommended for most users
+Download the latest release from the [Releases](https://github.com/reclamegraag/filemanager/releases) page:
+- **MSI Installer:** [FileManager_0.1.0_x64_en-US.msi](https://github.com/reclamegraag/filemanager/releases/download/v0.1.0/FileManager_0.1.0_x64_en-US.msi) — Recommended for most users
 - **Portable:** `filemanager.exe` — No installation required
 
 ### Build from Source
