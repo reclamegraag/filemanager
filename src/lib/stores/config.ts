@@ -22,8 +22,13 @@ function createConfigStore() {
   let saveCallback: ((config: AppConfig) => Promise<void>) | null = null;
 
   const triggerSave = async (config: AppConfig) => {
+    console.log('Config store: triggerSave called with', config);
     if (saveCallback) {
+      console.log('Config store: calling saveCallback');
       await saveCallback(config);
+      console.log('Config store: saveCallback completed');
+    } else {
+      console.warn('Config store: no saveCallback set');
     }
   };
 
