@@ -19,6 +19,7 @@ export type KeyAction =
   | 'rename'
   | 'undo'
   | 'command_palette'
+  | 'global_search'
   | 'start_filter'
   | 'clear_filter'
   | 'edit_path'
@@ -71,6 +72,8 @@ export const defaultKeyBindings: KeyBinding[] = [
 
   // UI
   { key: 'p', ctrl: true, action: 'command_palette' },
+  { key: 'F3', action: 'global_search' },
+  { key: 'f', ctrl: true, shift: true, action: 'global_search' },
   { key: 'l', ctrl: true, action: 'edit_path' },
   { key: '/', action: 'start_filter' },
   { key: 'Escape', action: 'clear_filter' },

@@ -7,10 +7,12 @@
   import CommandPalette from '$lib/components/CommandPalette.svelte';
   import HelpOverlay from '$lib/components/HelpOverlay.svelte';
   import BatchRenameDialog from '$lib/components/BatchRenameDialog.svelte';
+  import GlobalSearch from '$lib/components/GlobalSearch.svelte';
   import { leftPane, rightPane, activePane, getSortedEntries } from '$lib/stores/panes';
   import { leftSelection, rightSelection } from '$lib/stores/selection';
   import { clipboard } from '$lib/stores/clipboard';
   import { config } from '$lib/stores/config';
+  import { indexStore } from '$lib/stores/index';
   import type { FileEntry, WslDistro } from '$lib/utils/ipc';
   import {
     getHomeDirectory,
@@ -33,12 +35,14 @@
   let commandPaletteOpen = $state(false);
   let helpOpen = $state(false);
   let batchRenameOpen = $state(false);
+  let globalSearchOpen = $state(false);
   let showHidden = $state(false);
   let filterMode = $state(false);
   let editingPath = $state<'left' | 'right' | null>(null);
   let batchRenameFiles = $state<{ path: string; name: string }[]>([]);
 
   const commands = [
+    { id: 'search', label: 'Global search', shortcut: 'F3', action: () => globalSearchOpen = true },
     { id: 'copy', label: 'Copy to other pane', shortcut: 'F5', action: () => handleCopy() },
     { id: 'move', label: 'Move to other pane', shortcut: 'F6', action: () => handleMove() },
     { id: 'mkdir', label: 'Create directory', shortcut: 'F7', action: () => handleCreateDir() },
@@ -58,6 +62,9 @@
 
   onMount(async () => {
     try {
+      // Initialize indexer store
+      await indexStore.init();
+
       const home = await getHomeDirectory();
       if (home) {
         leftPane.setPath(home);
@@ -82,6 +89,11 @@
   });
 
   function handleKeyDown(event: KeyboardEvent) {
+    // Skip when overlays are open - let them handle their own keyboard events
+    if (commandPaletteOpen || helpOpen || batchRenameOpen || globalSearchOpen) {
+      return;
+    }
+
     // Skip when editing path - let the input handle keyboard events
     if (editingPath !== null) {
       return;
@@ -181,6 +193,10 @@
 
       case 'command_palette':
         commandPaletteOpen = true;
+        break;
+
+      case 'global_search':
+        globalSearchOpen = true;
         break;
 
       case 'clear_filter':
@@ -495,6 +511,33 @@
     }
   }
 
+  async function handleSearchNavigate(dirPath: string, fileName: string) {
+    const paneStore = $activePane === 'left' ? leftPane : rightPane;
+    const selection = $activePane === 'left' ? leftSelection : rightSelection;
+
+    // Navigate to the directory
+    paneStore.setPath(dirPath);
+    selection.clear();
+
+    // If a file name was provided, select it after the directory loads
+    if (fileName) {
+      // Wait for entries to load, then select the file
+      setTimeout(async () => {
+        let paneState: typeof $leftPane;
+        paneStore.subscribe(s => paneState = s)();
+
+        const visibleEntries = getSortedEntries(paneState!);
+        const index = visibleEntries.findIndex(e => e.name === fileName);
+
+        if (index >= 0) {
+          const entry = visibleEntries[index];
+          selection.select(entry.path);
+          selection.setFocusedIndex(index);
+        }
+      }, 300);
+    }
+  }
+
   async function handleRemoveBookmark(path: string) {
     config.removeBookmark(path);
 
@@ -589,6 +632,12 @@
     files={batchRenameFiles}
     onClose={() => batchRenameOpen = false}
     onComplete={() => refreshPane($activePane)}
+  />
+
+  <GlobalSearch
+    open={globalSearchOpen}
+    onClose={() => globalSearchOpen = false}
+    onNavigate={handleSearchNavigate}
   />
 </div>
 

@@ -66,6 +66,47 @@ async function invoke<T>(cmd: string, args?: any): Promise<T> {
         setTimeout(() => resolve({} as T), 100);
       });
 
+    case 'search_files':
+      return new Promise(resolve => {
+        const query = (args?.query || '').toLowerCase();
+        const results = mockFiles.filter(f => f.name.toLowerCase().includes(query));
+        setTimeout(() => resolve(results as T), 200);
+      });
+
+    case 'get_available_drives':
+      return new Promise(resolve => {
+        const drives = [
+          { name: 'C: Drive', path: 'C:\\' },
+          { name: 'D: Drive', path: 'D:\\' },
+        ];
+        setTimeout(() => resolve(drives as T), 100);
+      });
+
+    case 'start_indexing':
+    case 'stop_indexing':
+    case 'clear_index_cache':
+      console.log(`Mock index operation: ${cmd}`, args);
+      return new Promise(resolve => {
+        setTimeout(() => resolve(undefined as T), 100);
+      });
+
+    case 'search_index':
+      return new Promise(resolve => {
+        const query = (args?.query || '').toLowerCase();
+        const results = mockFiles.filter(f => f.name.toLowerCase().includes(query));
+        setTimeout(() => resolve(results as T), 100);
+      });
+
+    case 'get_index_status':
+      return new Promise(resolve => {
+        const status = {
+          status: 'idle',
+          indexed_count: mockFiles.length,
+          current_path: null
+        };
+        setTimeout(() => resolve(status as T), 100);
+      });
+
     default:
       console.log(`Unknown command: ${cmd}`, args);
       return new Promise(resolve => {
@@ -105,6 +146,11 @@ export interface UndoToken {
   operation: string;
   paths: string[];
   backup_paths: string[];
+}
+
+export interface DriveInfo {
+  name: string;
+  path: string;
 }
 
 export interface Config {
@@ -214,6 +260,40 @@ export function normalizeWslPath(path: string): string {
     return '\\\\wsl$\\' + path.slice(7).replace(/\//g, '\\');
   }
   return path;
+}
+
+// Search commands
+export async function searchFiles(
+  query: string,
+  rootPaths: string[],
+  limit?: number
+): Promise<FileEntry[]> {
+  return invoke<FileEntry[]>('search_files', {
+    query,
+    root_paths: rootPaths,
+    limit,
+  });
+}
+
+export async function getAvailableDrives(): Promise<DriveInfo[]> {
+  return invoke<DriveInfo[]>('get_available_drives');
+}
+
+// Indexer commands
+export async function startIndexing(roots: string[]): Promise<void> {
+  return invoke<void>('start_indexing', { roots });
+}
+
+export async function stopIndexing(): Promise<void> {
+  return invoke<void>('stop_indexing');
+}
+
+export async function clearIndexCache(): Promise<void> {
+  return invoke<void>('clear_index_cache');
+}
+
+export async function searchIndex(query: string, limit?: number): Promise<FileEntry[]> {
+  return invoke<FileEntry[]>('search_index', { query, limit });
 }
 
 // Error parsing helper - converts AppError objects to readable strings

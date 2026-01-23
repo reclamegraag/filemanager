@@ -32,6 +32,7 @@
     ]},
     { category: 'UI', items: [
       { key: 'Ctrl+P', action: 'Command palette' },
+      { key: 'F3', action: 'Global search' },
       { key: 'Ctrl+L', action: 'Edit path' },
       { key: '/', action: 'Start filter' },
       { key: 'Escape', action: 'Clear filter' },

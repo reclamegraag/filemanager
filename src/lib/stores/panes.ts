@@ -65,15 +65,15 @@ function createPaneStore(initialPath: string) {
     entries: [],
     loading: false,
     error: null,
-    sortColumn: 'name',
-    sortDirection: 'asc',
+    sortColumn: 'modified',
+    sortDirection: 'desc',
     filter: '',
     showHidden: false,
   });
 
   return {
     subscribe,
-    setPath: (path: string) => update(s => ({ ...s, path, filter: '' })),
+    setPath: (path: string) => update(s => ({ ...s, path, filter: '', sortColumn: 'modified', sortDirection: 'desc' })),
     setEntries: (entries: FileEntry[]) => update(s => ({ ...s, entries, loading: false, error: null })),
     setLoading: (loading: boolean) => update(s => ({ ...s, loading })),
     setError: (error: string | null) => update(s => ({ ...s, error, loading: false })),
