@@ -22,8 +22,16 @@ function createConfigStore() {
   let saveCallback: ((config: AppConfig) => Promise<void>) | null = null;
 
   const triggerSave = async (config: AppConfig) => {
+    console.log('[Config Store] triggerSave called, bookmarks:', config.bookmarks.length);
     if (saveCallback) {
-      await saveCallback(config);
+      try {
+        await saveCallback(config);
+        console.log('[Config Store] Save completed successfully');
+      } catch (e) {
+        console.error('[Config Store] Save failed:', e);
+      }
+    } else {
+      console.warn('[Config Store] No saveCallback registered yet');
     }
   };
 

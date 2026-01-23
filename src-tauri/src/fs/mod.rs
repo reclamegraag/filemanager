@@ -27,7 +27,7 @@ pub struct WslDistro {
 pub struct Bookmark {
     pub name: String,
     pub path: String,
-    pub shortcut: Option<u8>, // 1-9 for Ctrl+1..9
+    pub shortcut: Option<i32>,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, Default)]

@@ -148,6 +148,10 @@ import { getSelectionStore } from '$lib/stores/selection';
       wslDistros = await getWslDistros();
 
       const savedConfig = await loadConfig();
+      console.log('[Page] Loaded config, bookmarks:', savedConfig.bookmarks?.length || 0);
+      if (savedConfig.bookmarks) {
+        savedConfig.bookmarks.forEach((b: any) => console.log('[Page] - Bookmark:', b.name, '->', b.path));
+      }
       config.setConfig({
         bookmarks: savedConfig.bookmarks.map(b => ({
           name: b.name,
@@ -159,7 +163,9 @@ import { getSelectionStore } from '$lib/stores/selection';
       });
 
       // Set up auto-save callback
+      console.log('[Page] Setting up saveCallback');
       config.setSaveCallback(async (configState) => {
+        console.log('[Page] saveCallback invoked, bookmarks:', configState.bookmarks.length);
         const configToSave = {
           bookmarks: configState.bookmarks,
           left_pane: { path: $leftPane.path, sort_column: $leftPane.sortColumn, sort_ascending: $leftPane.sortDirection === 'asc' },
@@ -171,8 +177,9 @@ import { getSelectionStore } from '$lib/stores/selection';
 
         try {
           await saveConfig(configToSave);
+          console.log('[Page] Config saved via IPC');
         } catch (e) {
-          console.error('Failed to save config:', e);
+          console.error('[Page] Failed to save config:', e);
         }
       });
     } catch (e) {
