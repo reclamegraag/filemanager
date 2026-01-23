@@ -75,6 +75,24 @@
         showHidden: savedConfig.show_hidden,
         recentPaths: savedConfig.recent_paths,
       });
+
+      // Set up auto-save callback
+      config.setSaveCallback(async (configState) => {
+        const configToSave = {
+          bookmarks: configState.bookmarks,
+          left_pane: { path: $leftPane.path, sort_column: $leftPane.sortColumn, sort_ascending: $leftPane.sortDirection === 'asc' },
+          right_pane: { path: $rightPane.path, sort_column: $rightPane.sortColumn, sort_ascending: $rightPane.sortDirection === 'asc' },
+          window: { x: null, y: null, width: 1200, height: 800, maximized: false },
+          show_hidden: configState.showHidden,
+          recent_paths: configState.recentPaths,
+        };
+
+        try {
+          await saveConfig(configToSave);
+        } catch (e) {
+          console.error('Failed to save config:', e);
+        }
+      });
     } catch (e) {
       console.error('Init error:', e);
     }
@@ -468,42 +486,10 @@
     }
 
     config.addBookmark({ name, path, shortcut });
-
-    // Save to config file
-    const configToSave = {
-      bookmarks: [...$config.bookmarks, { name, path, shortcut }],
-      left_pane: { path: $leftPane.path, sort_column: $leftPane.sortColumn, sort_ascending: $leftPane.sortDirection === 'asc' },
-      right_pane: { path: $rightPane.path, sort_column: $rightPane.sortColumn, sort_ascending: $rightPane.sortDirection === 'asc' },
-      window: { x: null, y: null, width: 1200, height: 800, maximized: false },
-      show_hidden: showHidden,
-      recent_paths: $config.recentPaths,
-    };
-
-    try {
-      await saveConfig(configToSave);
-    } catch (e) {
-      console.error('Failed to save config:', e);
-    }
   }
 
   async function handleRemoveBookmark(path: string) {
     config.removeBookmark(path);
-
-    // Save to config file
-    const configToSave = {
-      bookmarks: $config.bookmarks.filter(b => b.path !== path),
-      left_pane: { path: $leftPane.path, sort_column: $leftPane.sortColumn, sort_ascending: $leftPane.sortDirection === 'asc' },
-      right_pane: { path: $rightPane.path, sort_column: $rightPane.sortColumn, sort_ascending: $rightPane.sortDirection === 'asc' },
-      window: { x: null, y: null, width: 1200, height: 800, maximized: false },
-      show_hidden: showHidden,
-      recent_paths: $config.recentPaths,
-    };
-
-    try {
-      await saveConfig(configToSave);
-    } catch (e) {
-      console.error('Failed to save config:', e);
-    }
   }
 </script>
 
