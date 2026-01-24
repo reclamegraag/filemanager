@@ -216,11 +216,11 @@ export async function deleteFiles(paths: string[]): Promise<UndoToken> {
 }
 
 export async function createDirectory(parentPath: string, name: string): Promise<string> {
-  return invoke<string>('create_directory', { parent_path: parentPath, name });
+  return invoke<string>('create_directory', { parentPath, name });
 }
 
 export async function renameFile(path: string, newName: string): Promise<string> {
-  return invoke<string>('rename_file', { path, new_name: newName });
+  return invoke<string>('rename_file', { path, newName });
 }
 
 // WSL commands
@@ -236,7 +236,7 @@ export async function wslCopy(
   return invoke<void>('wsl_copy', {
     source,
     dest,
-    use_wsl_native: useWslNative,
+    useWslNative,
   });
 }
 
@@ -270,7 +270,7 @@ export async function searchFiles(
 ): Promise<FileEntry[]> {
   return invoke<FileEntry[]>('search_files', {
     query,
-    root_paths: rootPaths,
+    rootPaths,
     limit,
   });
 }

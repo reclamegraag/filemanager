@@ -58,6 +58,7 @@
           bind:value={inputValue}
           placeholder={label}
           autocomplete="off"
+          onkeydown={handleKeyDown}
         />
       </div>
 
