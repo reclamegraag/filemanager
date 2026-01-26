@@ -10,6 +10,7 @@ export interface AppConfig {
   bookmarks: Bookmark[];
   showHidden: boolean;
   recentPaths: string[];
+  theme: 'light' | 'dark';
 }
 
 function createConfigStore() {
@@ -17,6 +18,7 @@ function createConfigStore() {
     bookmarks: [],
     showHidden: false,
     recentPaths: [],
+    theme: 'dark',
   });
 
   let saveCallback: ((config: AppConfig) => Promise<void>) | null = null;
@@ -76,6 +78,15 @@ function createConfigStore() {
       const newConfig = {
         ...c,
         recentPaths: [path, ...filtered].slice(0, 10),
+      };
+      triggerSave(newConfig);
+      return newConfig;
+    }),
+
+    setTheme: (theme: 'light' | 'dark') => update(c => {
+      const newConfig = {
+        ...c,
+        theme,
       };
       triggerSave(newConfig);
       return newConfig;

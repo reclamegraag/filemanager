@@ -21,6 +21,7 @@ const mockConfig: Config = {
   window: { x: null, y: null, width: 1200, height: 800, maximized: false },
   show_hidden: false,
   recent_paths: ['/home/user', '/home/user/Documents'],
+  theme: 'dark',
 };
 
 async function invoke<T>(cmd: string, args?: any): Promise<T> {
@@ -178,6 +179,7 @@ export interface Config {
   };
   show_hidden: boolean;
   recent_paths: string[];
+  theme: 'light' | 'dark';
 }
 
 // Filesystem commands

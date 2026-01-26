@@ -54,6 +54,12 @@ pub struct Config {
     pub window: WindowState,
     pub show_hidden: bool,
     pub recent_paths: Vec<String>,
+    #[serde(default = "default_theme")]
+    pub theme: String,
+}
+
+fn default_theme() -> String {
+    "dark".to_string()
 }
 
 impl Default for Config {
@@ -89,6 +95,7 @@ impl Default for Config {
             },
             show_hidden: false,
             recent_paths: Vec::new(),
+            theme: "dark".to_string(),
         }
     }
 }

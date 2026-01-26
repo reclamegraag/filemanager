@@ -35,7 +35,8 @@ export type KeyAction =
   | 'bookmark_7'
   | 'bookmark_8'
   | 'bookmark_9'
-  | 'help';
+  | 'help'
+  | 'toggle_fullscreen';
 
 export interface KeyBinding {
   key: string;
@@ -84,6 +85,7 @@ export const defaultKeyBindings: KeyBinding[] = [
   { key: '/', action: 'start_filter' },
   { key: 'Escape', action: 'clear_filter' },
   { key: 'F1', action: 'help' },
+  { key: 'F11', action: 'toggle_fullscreen' },
 
   // Bookmarks
   { key: 'd', ctrl: true, action: 'add_bookmark' },

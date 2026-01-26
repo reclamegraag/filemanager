@@ -134,6 +134,44 @@ import { getSelectionStore } from '$lib/stores/selection';
     rightPane.setShowHidden(showHidden);
   }
 
+  function toggleTheme() {
+    const newTheme = $config.theme === 'dark' ? 'light' : 'dark';
+    config.setTheme(newTheme);
+    applyTheme(newTheme);
+  }
+
+  function applyTheme(theme: 'light' | 'dark') {
+    if (theme === 'light') {
+      document.documentElement.classList.add('light');
+    } else {
+      document.documentElement.classList.remove('light');
+    }
+  }
+
+  async function toggleFullscreen() {
+    const isTauri = typeof window !== 'undefined' && '__TAURI_INTERNALS__' in window;
+    if (isTauri) {
+      const { getCurrentWindow } = await import('@tauri-apps/api/window');
+      const appWindow = getCurrentWindow();
+      const currentFullscreen = await appWindow.isFullscreen();
+
+      if (!currentFullscreen) {
+        // Going to fullscreen: first unmaximize if maximized (Windows fix)
+        const isMaximized = await appWindow.isMaximized();
+        if (isMaximized) {
+          await appWindow.unmaximize();
+          // Small delay to let Windows process the unmaximize
+          await new Promise(resolve => setTimeout(resolve, 50));
+        }
+        await appWindow.setFullscreen(true);
+      } else {
+        // Exiting fullscreen: go back to maximized state
+        await appWindow.setFullscreen(false);
+        await appWindow.maximize();
+      }
+    }
+  }
+
   onMount(async () => {
     try {
       // Initialize indexer store
@@ -152,6 +190,7 @@ import { getSelectionStore } from '$lib/stores/selection';
       if (savedConfig.bookmarks) {
         savedConfig.bookmarks.forEach((b: any) => console.log('[Page] - Bookmark:', b.name, '->', b.path));
       }
+      const theme = savedConfig.theme || 'dark';
       config.setConfig({
         bookmarks: savedConfig.bookmarks.map(b => ({
           name: b.name,
@@ -160,7 +199,11 @@ import { getSelectionStore } from '$lib/stores/selection';
         })),
         showHidden: savedConfig.show_hidden,
         recentPaths: savedConfig.recent_paths,
+        theme,
       });
+
+      // Apply theme on startup
+      applyTheme(theme);
 
       // Set up auto-save callback
       console.log('[Page] Setting up saveCallback');
@@ -173,6 +216,7 @@ import { getSelectionStore } from '$lib/stores/selection';
           window: { x: null, y: null, width: 1200, height: 800, maximized: false },
           show_hidden: configState.showHidden,
           recent_paths: configState.recentPaths,
+          theme: configState.theme,
         };
 
         try {
@@ -419,6 +463,10 @@ import { getSelectionStore } from '$lib/stores/selection';
         }
         break;
       }
+
+      case 'toggle_fullscreen':
+        toggleFullscreen();
+        break;
     }
   }
 
@@ -681,7 +729,11 @@ import { getSelectionStore } from '$lib/stores/selection';
 
 <svelte:window onkeydown={handleKeyDown} oncontextmenu={(e) => e.preventDefault()} />
 
-<TitleBar />
+<TitleBar
+  theme={$config.theme}
+  onToggleTheme={toggleTheme}
+  onToggleFullscreen={() => {}}
+/>
 <div class="app">
   <Sidebar
     bookmarks={$config.bookmarks}
