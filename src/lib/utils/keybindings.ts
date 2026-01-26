@@ -12,6 +12,8 @@ export type KeyAction =
   | 'extend_selection_down'
   | 'first_item'
   | 'last_item'
+  | 'page_up'
+  | 'page_down'
   | 'copy'
   | 'move'
   | 'delete'
@@ -54,6 +56,10 @@ export const defaultKeyBindings: KeyBinding[] = [
   { key: 'Tab', action: 'switch_pane' },
   { key: 'Home', action: 'first_item' },
   { key: 'End', action: 'last_item' },
+  { key: 'Home', ctrl: true, action: 'first_item' },
+  { key: 'End', ctrl: true, action: 'last_item' },
+  { key: 'PageUp', action: 'page_up' },
+  { key: 'PageDown', action: 'page_down' },
 
   // Selection
   { key: 'a', ctrl: true, action: 'select_all' },

@@ -240,6 +240,14 @@ import { getSelectionStore } from '$lib/stores/selection';
     executeAction(action);
   }
 
+  function getVisiblePageSize(): number {
+    // FileRow height: 6px padding top + ~17px content + 6px padding bottom = ~29px
+    const ROW_HEIGHT = 29;
+    // Estimate container height: window height - title bar (32px) - path bar (~40px) - header (~32px) - status bar (~28px) - padding (16px)
+    const containerHeight = window.innerHeight - 148;
+    return Math.max(1, Math.floor(containerHeight / ROW_HEIGHT));
+  }
+
   function executeAction(action: KeyAction) {
     const currentSelection = $activePane === 'left' ? leftSelection : rightSelection;
     const currentPaneStore = $activePane === 'left' ? leftPane : rightPane;
@@ -288,6 +296,30 @@ import { getSelectionStore } from '$lib/stores/selection';
         currentSelection.setFocusedIndex(lastIndex);
         if (visibleEntries[lastIndex]) {
           currentSelection.select(visibleEntries[lastIndex].path);
+        }
+        break;
+      }
+
+      case 'page_up': {
+        let sel: { focusedIndex: number };
+        currentSelection.subscribe(s => sel = s)();
+        const pageSize = getVisiblePageSize();
+        const newIndex = Math.max(0, sel!.focusedIndex - pageSize);
+        currentSelection.setFocusedIndex(newIndex);
+        if (visibleEntries[newIndex]) {
+          currentSelection.select(visibleEntries[newIndex].path);
+        }
+        break;
+      }
+
+      case 'page_down': {
+        let sel: { focusedIndex: number };
+        currentSelection.subscribe(s => sel = s)();
+        const pageSize = getVisiblePageSize();
+        const newIndex = Math.min(visibleEntries.length - 1, sel!.focusedIndex + pageSize);
+        currentSelection.setFocusedIndex(newIndex);
+        if (visibleEntries[newIndex]) {
+          currentSelection.select(visibleEntries[newIndex].path);
         }
         break;
       }
