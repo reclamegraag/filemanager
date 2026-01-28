@@ -99,7 +99,13 @@ impl IndexManager {
         let mut results = Vec::with_capacity(limit);
 
         for (path, entry) in index.iter() {
-            if entry.name_lower.contains(&query_lower) {
+            let matches = if query_lower.contains('/') || query_lower.contains('\\') {
+                path.to_string_lossy().to_lowercase().contains(&query_lower)
+            } else {
+                entry.name_lower.contains(&query_lower)
+            };
+
+            if matches {
                 results.push(FileEntry {
                     name: entry.name.clone(),
                     path: path.display().to_string(),
